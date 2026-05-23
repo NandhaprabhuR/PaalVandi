@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 // import 'package:supabase_flutter/supabase_flutter.dart';
-import 'customers_otp_model.dart';
+import '../models/customers_otp_model.dart';
 
 // Events
 abstract class CustomersOtpEvent extends Equatable {

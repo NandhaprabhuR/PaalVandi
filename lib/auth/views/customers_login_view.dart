@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'customers_login_viewmodel.dart';
-import '../theme/customers_login_themeview.dart';
+import '../viewmodels/customers_login_viewmodel.dart';
+import '../../theme/customers_login_themeview.dart';
 
 class CustomersLoginView extends StatelessWidget {
   const CustomersLoginView({super.key});

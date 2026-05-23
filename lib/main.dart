@@ -4,14 +4,18 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 // ViewModels
-import 'auth/customers_login_viewmodel.dart';
-import 'auth/customers_login_view.dart';
-import 'otp/customers_otp_viewmodel.dart';
-import 'otp/customers_otp_view.dart';
-import 'profile/customers_profile_viewmodel.dart';
-import 'profile/customers_profile_view.dart';
-import 'home/customers_home_viewmodel.dart';
-import 'home/customers_home_view.dart';
+import 'auth/viewmodels/customers_login_viewmodel.dart';
+import 'auth/views/customers_login_view.dart';
+
+import 'otp/viewmodels/customers_otp_viewmodel.dart';
+import 'otp/views/customers_otp_view.dart';
+import 'profile/viewmodels/customers_profile_viewmodel.dart';
+import 'profile/views/customers_profile_view.dart';
+import 'home/viewmodels/customers_home_viewmodel.dart';
+import 'bottomnavigation/views/bottom_navigation_view.dart';
+import 'core/app_route_storage.dart';
+import 'core/route_persistence_observer.dart';
+import 'theme/customers_login_themeview.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,16 +40,62 @@ CustomTransitionPage buildPageWithFadeTransition<T>({
   );
 }
 
-class PaalvandiApp extends StatelessWidget {
+/// Loads persisted route first so hot reload never sees a null initial location.
+class PaalvandiApp extends StatefulWidget {
   const PaalvandiApp({super.key});
+
+  @override
+  State<PaalvandiApp> createState() => _PaalvandiAppState();
+}
+
+class _PaalvandiAppState extends State<PaalvandiApp> {
+  late final Future<String> _initialRouteFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _initialRouteFuture = AppRouteStorage.getInitialRoute();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<String>(
+      future: _initialRouteFuture,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            home: Scaffold(
+              backgroundColor: Colors.white,
+              body: Center(
+                child: const CircularProgressIndicator(
+                  color: CustomersLoginThemeView.primaryBlue,
+                ),
+              ),
+            ),
+          );
+        }
+
+        return _PaalvandiRouterApp(initialLocation: snapshot.data!);
+      },
+    );
+  }
+}
+
+class _PaalvandiRouterApp extends StatelessWidget {
+  final String initialLocation;
+
+  const _PaalvandiRouterApp({required this.initialLocation});
 
   @override
   Widget build(BuildContext context) {
     final router = GoRouter(
-      initialLocation: '/login',
+      initialLocation: initialLocation,
+      observers: [RoutePersistenceObserver()],
       routes: [
         GoRoute(
           path: '/login',
+          name: '/login',
           pageBuilder: (context, state) => buildPageWithFadeTransition(
             context: context,
             state: state,
@@ -65,6 +115,7 @@ class PaalvandiApp extends StatelessWidget {
         ),
         GoRoute(
           path: '/profile',
+          name: '/profile',
           pageBuilder: (context, state) => buildPageWithFadeTransition(
             context: context,
             state: state,
@@ -73,10 +124,11 @@ class PaalvandiApp extends StatelessWidget {
         ),
         GoRoute(
           path: '/home',
+          name: '/home',
           pageBuilder: (context, state) => buildPageWithFadeTransition(
             context: context,
             state: state,
-            child: const CustomersHomeView(),
+            child: const BottomNavigationView(),
           ),
         ),
       ],
@@ -84,7 +136,7 @@ class PaalvandiApp extends StatelessWidget {
 
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => CustomersLoginViewModel(null)), // Pass null for mocked Supabase
+        BlocProvider(create: (_) => CustomersLoginViewModel(null)),
         BlocProvider(create: (_) => CustomersOtpViewModel(null)),
         BlocProvider(create: (_) => CustomersProfileViewModel(null)),
         BlocProvider(create: (_) => CustomersHomeViewModel(null)..add(LoadHomeData())),

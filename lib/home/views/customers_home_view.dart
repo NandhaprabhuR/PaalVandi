@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'customers_home_viewmodel.dart';
-import '../theme/customers_home_themeview.dart';
+import '../viewmodels/customers_home_viewmodel.dart';
+import '../../theme/customers_home_themeview.dart';
 
 class CustomersHomeView extends StatelessWidget {
   const CustomersHomeView({super.key});

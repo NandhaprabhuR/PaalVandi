@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/app_navigation.dart';
+import '../../core/app_route_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'customers_profile_viewmodel.dart';
-import '../theme/customers_login_themeview.dart';
+import '../viewmodels/customers_profile_viewmodel.dart';
+import '../../theme/customers_login_themeview.dart';
 
 class CustomersProfileView extends StatefulWidget {
   const CustomersProfileView({super.key});
@@ -84,7 +86,7 @@ class _CustomersProfileViewState extends State<CustomersProfileView> {
         child: BlocConsumer<CustomersProfileViewModel, CustomersProfileState>(
           listener: (context, state) {
             if (state is ProfileSuccess) {
-              context.go('/home');
+              context.goPersist('/home');
             } else if (state is ProfileFailure) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text(state.error)),
@@ -116,7 +118,8 @@ class _CustomersProfileViewState extends State<CustomersProfileView> {
                               if (context.canPop()) {
                                 context.pop();
                               } else {
-                                context.go('/login');
+                                AppRouteStorage.clearSession();
+                                context.goPersist('/login');
                               }
                             },
                             padding: EdgeInsets.zero,

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../../core/app_navigation.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'customers_otp_viewmodel.dart';
-import '../theme/customers_login_themeview.dart';
+import '../viewmodels/customers_otp_viewmodel.dart';
+import '../../theme/customers_login_themeview.dart';
 
 class CustomersOtpView extends StatelessWidget {
   final String phoneNumber;
@@ -25,9 +26,9 @@ class CustomersOtpView extends StatelessWidget {
           listener: (context, state) {
             if (state is OtpSuccess) {
               if (state.isProfileComplete) {
-                context.go('/home');
+                context.goPersist('/home');
               } else {
-                context.go('/profile');
+                context.goPersist('/profile');
               }
             } else if (state is OtpFailure) {
               ScaffoldMessenger.of(context).showSnackBar(
