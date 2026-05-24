@@ -2,56 +2,74 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../theme/customers_login_themeview.dart';
+import '../../core/widgets/responsive_helper.dart';
 import '../models/subscription_plan_model.dart';
 import '../services/subscription_pricing.dart';
 import '../widgets/subscription_sheet_widgets.dart';
+import '../viewmodels/subscriptions_scope.dart';
 import 'subscription_flow.dart';
 
 void showFamilySubscriptionSheet(BuildContext context) {
-  showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (ctx) => const _FamilySubscriptionSheet(),
+  final store = SubscriptionsScope.of(context);
+  Navigator.push(
+    context,
+    MaterialPageRoute<void>(
+      builder: (ctx) => SubscriptionsScope(
+        store: store,
+        child: const _FamilySubscriptionPage(),
+      ),
+    ),
   );
 }
 
 void showBusinessSubscriptionSheet(BuildContext context) {
-  showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (ctx) => const _BusinessSubscriptionSheet(),
+  final store = SubscriptionsScope.of(context);
+  Navigator.push(
+    context,
+    MaterialPageRoute<void>(
+      builder: (ctx) => SubscriptionsScope(
+        store: store,
+        child: const _BusinessSubscriptionPage(),
+      ),
+    ),
   );
 }
 
 void showEventSubscriptionSheet(BuildContext context) {
-  showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (ctx) => const _EventSubscriptionSheet(),
+  final store = SubscriptionsScope.of(context);
+  Navigator.push(
+    context,
+    MaterialPageRoute<void>(
+      builder: (ctx) => SubscriptionsScope(
+        store: store,
+        child: const _EventSubscriptionPage(),
+      ),
+    ),
   );
 }
 
 void showSmartSubscriptionSheet(BuildContext context) {
-  showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (ctx) => const _SmartSubscriptionSheet(),
+  final store = SubscriptionsScope.of(context);
+  Navigator.push(
+    context,
+    MaterialPageRoute<void>(
+      builder: (ctx) => SubscriptionsScope(
+        store: store,
+        child: const _SmartSubscriptionPage(),
+      ),
+    ),
   );
 }
 
-class _FamilySubscriptionSheet extends StatefulWidget {
-  const _FamilySubscriptionSheet();
+class _FamilySubscriptionPage extends StatefulWidget {
+  const _FamilySubscriptionPage();
 
   @override
-  State<_FamilySubscriptionSheet> createState() =>
-      _FamilySubscriptionSheetState();
+  State<_FamilySubscriptionPage> createState() =>
+      _FamilySubscriptionPageState();
 }
 
-class _FamilySubscriptionSheetState extends State<_FamilySubscriptionSheet> {
+class _FamilySubscriptionPageState extends State<_FamilySubscriptionPage> {
   static const _quantities = [
     '250ml',
     '500ml',
@@ -99,7 +117,8 @@ class _FamilySubscriptionSheetState extends State<_FamilySubscriptionSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return _wrapSheet(
+    return _wrapPage(
+      context: context,
       title: 'Family Subscription',
       backgroundColor: SubscriptionPlans.family.cardTint,
       onContinue: _continue,
@@ -166,16 +185,16 @@ class _FamilySubscriptionSheetState extends State<_FamilySubscriptionSheet> {
   }
 }
 
-class _BusinessSubscriptionSheet extends StatefulWidget {
-  const _BusinessSubscriptionSheet();
+class _BusinessSubscriptionPage extends StatefulWidget {
+  const _BusinessSubscriptionPage();
 
   @override
-  State<_BusinessSubscriptionSheet> createState() =>
-      _BusinessSubscriptionSheetState();
+  State<_BusinessSubscriptionPage> createState() =>
+      _BusinessSubscriptionPageState();
 }
 
-class _BusinessSubscriptionSheetState
-    extends State<_BusinessSubscriptionSheet> {
+class _BusinessSubscriptionPageState
+    extends State<_BusinessSubscriptionPage> {
   static const _quantities = ['5L', '10L', '15L', '20L', '25L', '30L', 'Custom'];
   static const _businessTypes = [
     'Hotel',
@@ -219,7 +238,8 @@ class _BusinessSubscriptionSheetState
 
   @override
   Widget build(BuildContext context) {
-    return _wrapSheet(
+    return _wrapPage(
+      context: context,
       title: 'Business Subscription',
       backgroundColor: SubscriptionPlans.business.cardTint,
       onContinue: _continue,
@@ -279,6 +299,7 @@ class _BusinessSubscriptionSheetState
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             decoration: BoxDecoration(
+              color: Colors.white,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
                 color: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.35),
@@ -288,6 +309,7 @@ class _BusinessSubscriptionSheetState
               child: DropdownButton<String>(
                 isExpanded: true,
                 value: _businessType,
+                dropdownColor: Colors.white,
                 items: _businessTypes
                     .map(
                       (t) => DropdownMenuItem(
@@ -295,8 +317,9 @@ class _BusinessSubscriptionSheetState
                         child: Text(
                           t,
                           style: GoogleFonts.montserrat(
-                            fontSize: 14,
+                            fontSize: ResponsiveHelper.scaledFontSize(context, 14),
                             fontWeight: FontWeight.w600,
+                            color: CustomersLoginThemeView.textDark,
                           ),
                         ),
                       ),
@@ -314,15 +337,15 @@ class _BusinessSubscriptionSheetState
   }
 }
 
-class _EventSubscriptionSheet extends StatefulWidget {
-  const _EventSubscriptionSheet();
+class _EventSubscriptionPage extends StatefulWidget {
+  const _EventSubscriptionPage();
 
   @override
-  State<_EventSubscriptionSheet> createState() =>
-      _EventSubscriptionSheetState();
+  State<_EventSubscriptionPage> createState() =>
+      _EventSubscriptionPageState();
 }
 
-class _EventSubscriptionSheetState extends State<_EventSubscriptionSheet> {
+class _EventSubscriptionPageState extends State<_EventSubscriptionPage> {
   static const _quantities = ['10L', '20L', '50L', '100L', 'Custom'];
 
   int _qtyIndex = 0;
@@ -405,7 +428,8 @@ class _EventSubscriptionSheetState extends State<_EventSubscriptionSheet> {
         ? _eventTime!.format(context)
         : 'Select event time';
 
-    return _wrapSheet(
+    return _wrapPage(
+      context: context,
       title: 'Event Subscription',
       backgroundColor: SubscriptionPlans.event.cardTint,
       onContinue: _continue,
@@ -453,15 +477,15 @@ class _EventSubscriptionSheetState extends State<_EventSubscriptionSheet> {
   }
 }
 
-class _SmartSubscriptionSheet extends StatefulWidget {
-  const _SmartSubscriptionSheet();
+class _SmartSubscriptionPage extends StatefulWidget {
+  const _SmartSubscriptionPage();
 
   @override
-  State<_SmartSubscriptionSheet> createState() =>
-      _SmartSubscriptionSheetState();
+  State<_SmartSubscriptionPage> createState() =>
+      _SmartSubscriptionPageState();
 }
 
-class _SmartSubscriptionSheetState extends State<_SmartSubscriptionSheet> {
+class _SmartSubscriptionPageState extends State<_SmartSubscriptionPage> {
   static const _days = [
     'Monday',
     'Tuesday',
@@ -501,7 +525,8 @@ class _SmartSubscriptionSheetState extends State<_SmartSubscriptionSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return _wrapSheet(
+    return _wrapPage(
+      context: context,
       title: 'Smart Subscription',
       backgroundColor: SubscriptionPlans.smart.cardTint,
       onContinue: _continue,
@@ -515,6 +540,7 @@ class _SmartSubscriptionSheetState extends State<_SmartSubscriptionSheet> {
               margin: const EdgeInsets.only(bottom: 8),
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: CustomersLoginThemeView.primaryBlue.withValues(
@@ -529,7 +555,7 @@ class _SmartSubscriptionSheetState extends State<_SmartSubscriptionSheet> {
                     child: Text(
                       day,
                       style: GoogleFonts.montserrat(
-                        fontSize: 13,
+                        fontSize: ResponsiveHelper.scaledFontSize(context, 13),
                         fontWeight: FontWeight.w700,
                         color: CustomersLoginThemeView.textDark,
                       ),
@@ -541,13 +567,17 @@ class _SmartSubscriptionSheetState extends State<_SmartSubscriptionSheet> {
                       child: DropdownButton<String>(
                         isExpanded: true,
                         value: _dayQty[day],
+                        dropdownColor: Colors.white,
                         items: _qtyOptions
                             .map(
                               (q) => DropdownMenuItem(
                                 value: q,
                                 child: Text(
                                   q,
-                                  style: GoogleFonts.montserrat(fontSize: 13),
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: ResponsiveHelper.scaledFontSize(context, 13),
+                                    color: CustomersLoginThemeView.textDark,
+                                  ),
                                 ),
                               ),
                             )
@@ -614,7 +644,7 @@ class _PickerRow extends StatelessWidget {
                   child: Text(
                     label,
                     style: GoogleFonts.montserrat(
-                      fontSize: 14,
+                      fontSize: ResponsiveHelper.scaledFontSize(context, 14),
                       color: CustomersLoginThemeView.textDark,
                     ),
                   ),
@@ -633,106 +663,92 @@ class _PickerRow extends StatelessWidget {
   }
 }
 
-Widget _wrapSheet({
+Widget _wrapPage({
+  required BuildContext context,
   required String title,
   required Color backgroundColor,
   required VoidCallback onContinue,
   required Widget child,
 }) {
-  return Builder(
-    builder: (context) {
-      return AnimatedPadding(
-        duration: const Duration(milliseconds: 280),
-        curve: Curves.easeOutCubic,
-        padding: EdgeInsets.only(
-          bottom: MediaQuery.viewInsetsOf(context).bottom,
+  final hPadding = ResponsiveHelper.horizontalPadding(context);
+  final vPadding = ResponsiveHelper.verticalPadding(context);
+
+  return Scaffold(
+    backgroundColor: backgroundColor,
+    appBar: AppBar(
+      backgroundColor: backgroundColor,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      leading: IconButton(
+        icon: const Icon(
+          Icons.arrow_back_ios_new,
+          color: CustomersLoginThemeView.primaryBlue,
+          size: 20,
         ),
-        child: Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.sizeOf(context).height * 0.92,
+        onPressed: () => Navigator.of(context).pop(),
+      ),
+      title: Text(
+        title,
+        style: GoogleFonts.montserrat(
+          fontSize: ResponsiveHelper.scaledFontSize(context, 18),
+          fontWeight: FontWeight.w800,
+          color: CustomersLoginThemeView.primaryBlue,
+        ),
+      ),
+      centerTitle: true,
+    ),
+    body: SafeArea(
+      child: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: EdgeInsets.symmetric(horizontal: hPadding, vertical: vPadding),
+              child: child,
+            ),
           ),
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-            border: const Border(
-              top: BorderSide(
-                color: CustomersLoginThemeView.primaryBlue,
-                width: 2,
+          Container(
+            padding: EdgeInsets.fromLTRB(hPadding, 12, hPadding, 16 + MediaQuery.paddingOf(context).bottom),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              border: Border(
+                top: BorderSide(
+                  color: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.15),
+                  width: 1,
+                ),
               ),
-              left: BorderSide(
-                color: CustomersLoginThemeView.primaryBlue,
-                width: 1.2,
-              ),
-              right: BorderSide(
-                color: CustomersLoginThemeView.primaryBlue,
-                width: 1.2,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -5),
+                ),
+              ],
+            ),
+            child: SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: onContinue,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: CustomersLoginThemeView.primaryBlue,
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  'Continue',
+                  style: CustomersLoginThemeView.buttonTextStyle.copyWith(
+                    fontSize: ResponsiveHelper.scaledFontSize(context, 15),
+                  ),
+                ),
               ),
             ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const SizedBox(height: 10),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: CustomersLoginThemeView.borderColor,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    title,
-                    style: GoogleFonts.montserrat(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: CustomersLoginThemeView.primaryBlue,
-                    ),
-                  ),
-                ),
-              ),
-              Flexible(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
-                  child: child,
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                  20,
-                  8,
-                  20,
-                  16 + MediaQuery.paddingOf(context).bottom,
-                ),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: onContinue,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: CustomersLoginThemeView.primaryBlue,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: Text(
-                      'Continue',
-                      style: CustomersLoginThemeView.buttonTextStyle.copyWith(
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    },
+        ],
+      ),
+    ),
   );
 }

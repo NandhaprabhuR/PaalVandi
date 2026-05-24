@@ -1,33 +1,35 @@
 import 'package:flutter/material.dart';
 import '../../../theme/customers_login_themeview.dart';
+import '../../../core/widgets/responsive_helper.dart';
 import 'home_gpay_loading_line.dart';
 
 class HomeTopBar extends StatelessWidget {
   const HomeTopBar({super.key});
 
-  static const double barHeight = 100;
-  static const double searchOverlap = 22;
-  static const double _horizontalInset = 20;
-  static const double _searchRadius = 30;
-
-  static final OutlineInputBorder _searchBorder = OutlineInputBorder(
-    borderRadius: BorderRadius.circular(_searchRadius),
-    borderSide: const BorderSide(
-      color: CustomersLoginThemeView.primaryBlue,
-      width: 1.5,
-    ),
-  );
-
-  static final OutlineInputBorder _searchFocusedBorder = OutlineInputBorder(
-    borderRadius: BorderRadius.circular(_searchRadius),
-    borderSide: const BorderSide(
-      color: CustomersLoginThemeView.primaryBlue,
-      width: 2.5,
-    ),
-  );
-
   @override
   Widget build(BuildContext context) {
+    final barHeight = ResponsiveHelper.scaleHeight(context, 100).clamp(85.0, 130.0);
+    final searchOverlap = ResponsiveHelper.scaleHeight(context, 22).clamp(16.0, 26.0);
+    final horizontalInset = ResponsiveHelper.horizontalPadding(context, baseValue: 20);
+    final searchRadius = ResponsiveHelper.scaleWidth(context, 30).clamp(24.0, 36.0);
+    final fs = (double size) => ResponsiveHelper.scaledFontSize(context, size);
+
+    final OutlineInputBorder searchBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(searchRadius),
+      borderSide: const BorderSide(
+        color: CustomersLoginThemeView.primaryBlue,
+        width: 1.5,
+      ),
+    );
+
+    final OutlineInputBorder searchFocusedBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(searchRadius),
+      borderSide: const BorderSide(
+        color: CustomersLoginThemeView.primaryBlue,
+        width: 2.5,
+      ),
+    );
+
     return SizedBox(
       height: barHeight + searchOverlap,
       child: Stack(
@@ -36,8 +38,8 @@ class HomeTopBar extends StatelessWidget {
           Container(
             height: barHeight,
             width: double.infinity,
-            decoration: const BoxDecoration(
-              color: Colors.white,
+            decoration: BoxDecoration(
+              color: CustomersLoginThemeView.cardBackgroundColor,
               borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(28),
                 bottomRight: Radius.circular(28),
@@ -52,7 +54,7 @@ class HomeTopBar extends StatelessWidget {
             child: SafeArea(
               bottom: false,
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 30),
+                padding: EdgeInsets.fromLTRB(16, 0, 16, barHeight * 0.3),
                 child: Center(
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
@@ -63,7 +65,7 @@ class HomeTopBar extends StatelessWidget {
                           'PaalVandi',
                           style:
                               CustomersLoginThemeView.brandTitleStyle.copyWith(
-                            fontSize: 22,
+                            fontSize: fs(22),
                             height: 1.0,
                           ),
                         ),
@@ -72,7 +74,7 @@ class HomeTopBar extends StatelessWidget {
                           'FRESH MILK, EVERY DAY',
                           style: CustomersLoginThemeView.brandTaglineStyle
                               .copyWith(
-                            fontSize: 10,
+                            fontSize: fs(10),
                             height: 1.0,
                           ),
                         ),
@@ -84,36 +86,38 @@ class HomeTopBar extends StatelessWidget {
             ),
           ),
           Positioned(
-            left: _horizontalInset,
-            right: _horizontalInset,
+            left: horizontalInset,
+            right: horizontalInset,
             bottom: 0,
             child: Material(
               elevation: 4,
               shadowColor: Colors.black26,
-              borderRadius: BorderRadius.circular(_searchRadius),
+              borderRadius: BorderRadius.circular(searchRadius),
               clipBehavior: Clip.antiAlias,
               child: Stack(
                 children: [
                   TextField(
                     decoration: InputDecoration(
                       hintText: 'Search for products...',
-                      hintStyle: CustomersLoginThemeView.hintStyle,
-                      prefixIcon: const Icon(
+                      hintStyle: CustomersLoginThemeView.hintStyle.copyWith(
+                        fontSize: fs(14),
+                      ),
+                      prefixIcon: Icon(
                         Icons.search,
                         color: CustomersLoginThemeView.primaryBlue,
-                        size: 22,
+                        size: ResponsiveHelper.scaleWidth(context, 22).clamp(18.0, 26.0),
                       ),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: CustomersLoginThemeView.cardBackgroundColor,
                       contentPadding: const EdgeInsets.fromLTRB(
                         0,
                         12,
                         0,
                         14,
                       ),
-                      border: _searchBorder,
-                      enabledBorder: _searchBorder,
-                      focusedBorder: _searchFocusedBorder,
+                      border: searchBorder,
+                      enabledBorder: searchBorder,
+                      focusedBorder: searchFocusedBorder,
                     ),
                   ),
                   Positioned(
@@ -121,9 +125,9 @@ class HomeTopBar extends StatelessWidget {
                     right: 14,
                     bottom: 2,
                     child: ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(_searchRadius),
-                        bottomRight: Radius.circular(_searchRadius),
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(searchRadius),
+                        bottomRight: Radius.circular(searchRadius),
                       ),
                       child: const HomeGPayLoadingLine(),
                     ),

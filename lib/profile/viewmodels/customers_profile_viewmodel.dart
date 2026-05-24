@@ -17,6 +17,7 @@ class ProfileFieldChanged extends CustomersProfileEvent {
   final String? street;
   final String? pincode;
   final String? referralCode;
+  final String? deliveryPreference;
 
   const ProfileFieldChanged({
     this.name,
@@ -25,6 +26,7 @@ class ProfileFieldChanged extends CustomersProfileEvent {
     this.street,
     this.pincode,
     this.referralCode,
+    this.deliveryPreference,
   });
 
   @override
@@ -35,6 +37,7 @@ class ProfileFieldChanged extends CustomersProfileEvent {
         street ?? '',
         pincode ?? '',
         referralCode ?? '',
+        deliveryPreference ?? '',
       ];
 }
 
@@ -88,6 +91,7 @@ class CustomersProfileViewModel extends Bloc<CustomersProfileEvent, CustomersPro
         street: event.street,
         pincode: event.pincode,
         referralCode: event.referralCode,
+        deliveryPreference: event.deliveryPreference,
       )));
     });
 

@@ -6,6 +6,7 @@ import '../../core/app_route_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../viewmodels/customers_profile_viewmodel.dart';
 import '../../theme/customers_login_themeview.dart';
+import '../../core/widgets/responsive_helper.dart';
 
 class CustomersProfileView extends StatefulWidget {
   const CustomersProfileView({super.key});
@@ -34,15 +35,18 @@ class _CustomersProfileViewState extends State<CustomersProfileView> {
   }
 
   Widget _buildTextField({
+    required BuildContext context,
     required String hint,
     required Function(String) onChanged,
+    required double Function(double) scaleF,
+    required double Function(double) fs,
     TextEditingController? controller,
     bool isReadOnly = false,
     String? initialValue,
     TextInputType keyboardType = TextInputType.text,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: EdgeInsets.only(bottom: scaleF(16)),
       decoration: BoxDecoration(
         border: Border.all(color: CustomersLoginThemeView.primaryBlue.withOpacity(0.5), width: 1.5),
         borderRadius: BorderRadius.circular(12),
@@ -50,22 +54,22 @@ class _CustomersProfileViewState extends State<CustomersProfileView> {
       ),
       child: initialValue != null && isReadOnly
           ? Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              padding: EdgeInsets.symmetric(horizontal: scaleF(16), vertical: scaleF(16)),
               child: Text(
                 initialValue,
-                style: const TextStyle(fontSize: 16, color: CustomersLoginThemeView.textDark),
+                style: TextStyle(fontSize: fs(16), color: CustomersLoginThemeView.textDark),
               ),
             )
           : TextField(
               controller: controller,
               readOnly: isReadOnly,
               keyboardType: keyboardType,
-              style: const TextStyle(fontSize: 16, color: CustomersLoginThemeView.textDark),
+              style: TextStyle(fontSize: fs(16), color: CustomersLoginThemeView.textDark),
               decoration: InputDecoration(
                 hintText: hint,
-                hintStyle: CustomersLoginThemeView.hintStyle.copyWith(fontSize: 14),
+                hintStyle: CustomersLoginThemeView.hintStyle.copyWith(fontSize: fs(14)),
                 border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                contentPadding: EdgeInsets.symmetric(horizontal: scaleF(16), vertical: scaleF(16)),
               ),
               onChanged: onChanged,
             ),
@@ -74,123 +78,145 @@ class _CustomersProfileViewState extends State<CustomersProfileView> {
 
   @override
   Widget build(BuildContext context) {
+    final scaleF = (double val) => ResponsiveHelper.scaledValue(context, val);
+    final fs = (double size) => ResponsiveHelper.scaledFontSize(context, size);
+    final hPadding = ResponsiveHelper.horizontalPadding(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/background_images/login_background.png'),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: BlocConsumer<CustomersProfileViewModel, CustomersProfileState>(
-          listener: (context, state) {
-            if (state is ProfileSuccess) {
-              context.goPersist('/home');
-            } else if (state is ProfileFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.error)),
-              );
-            } else if (state is ProfileLocationFetched) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Live Map Location Captured Successfully!'),
-                  backgroundColor: Colors.green,
-                ),
-              );
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: CustomersLoginThemeView.primaryBlue),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              AppRouteStorage.clearSession();
+              context.goPersist('/login');
             }
           },
-          builder: (context, state) {
-            return SafeArea(
-              child: CustomScrollView(
-                slivers: [
-                  SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 16),
-                          IconButton(
-                            icon: const Icon(Icons.arrow_back, color: CustomersLoginThemeView.textDark),
-                            onPressed: () {
-                              if (context.canPop()) {
-                                context.pop();
-                              } else {
-                                AppRouteStorage.clearSession();
-                                context.goPersist('/login');
-                              }
-                            },
-                            padding: EdgeInsets.zero,
-                            alignment: Alignment.centerLeft,
+        ),
+        title: Text(
+          'Complete Profile',
+          style: CustomersLoginThemeView.brandTitleStyle.copyWith(
+            fontSize: fs(22),
+            letterSpacing: 0.5,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: BlocConsumer<CustomersProfileViewModel, CustomersProfileState>(
+        listener: (context, state) {
+          if (state is ProfileSuccess) {
+            context.goPersist('/home');
+          } else if (state is ProfileFailure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.error)),
+            );
+          } else if (state is ProfileLocationFetched) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Live Map Location Captured Successfully!'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+        },
+        builder: (context, state) {
+          return SafeArea(
+            child: CustomScrollView(
+              slivers: [
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: hPadding),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: scaleF(16)),
+                        Text(
+                          'Set up your delivery details gently.',
+                          style: CustomersLoginThemeView.subtitleStyle.copyWith(
+                            fontSize: fs(14),
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Complete Profile',
-                            style: CustomersLoginThemeView.titleStyle,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Set up your delivery details gently.',
-                            style: CustomersLoginThemeView.subtitleStyle,
-                          ),
-                          const SizedBox(height: 32),
+                        ),
+                        SizedBox(height: scaleF(20)),
                           Text(
                             'Personal Info',
                             style: GoogleFonts.montserrat(
-                              fontSize: 16,
+                              fontSize: fs(16),
                               fontWeight: FontWeight.bold,
                               color: CustomersLoginThemeView.primaryBlue,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: scaleF(12)),
                           _buildTextField(
+                            context: context,
                             hint: 'Full Name',
                             controller: _nameController,
+                            scaleF: scaleF,
+                            fs: fs,
                             onChanged: (value) => context.read<CustomersProfileViewModel>().add(ProfileFieldChanged(name: value)),
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: scaleF(16)),
                           Text(
                             'Delivery Address',
                             style: GoogleFonts.montserrat(
-                              fontSize: 16,
+                              fontSize: fs(16),
                               fontWeight: FontWeight.bold,
                               color: CustomersLoginThemeView.primaryBlue,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: scaleF(12)),
                           _buildTextField(
+                            context: context,
                             hint: 'House / Flat No (Example: B-302)',
                             controller: _houseNoController,
+                            scaleF: scaleF,
+                            fs: fs,
                             onChanged: (value) => context.read<CustomersProfileViewModel>().add(ProfileFieldChanged(houseNo: value)),
                           ),
                           _buildTextField(
+                            context: context,
                             hint: 'Apartment / Building Name',
                             controller: _apartmentController,
+                            scaleF: scaleF,
+                            fs: fs,
                             onChanged: (value) => context.read<CustomersProfileViewModel>().add(ProfileFieldChanged(apartmentName: value)),
                           ),
                           _buildTextField(
+                            context: context,
                             hint: 'Street / Area (Example: Vadavalli)',
                             controller: _streetController,
+                            scaleF: scaleF,
+                            fs: fs,
                             onChanged: (value) => context.read<CustomersProfileViewModel>().add(ProfileFieldChanged(street: value)),
                           ),
                           Row(
                             children: [
                               Expanded(
                                 child: _buildTextField(
+                                  context: context,
                                   hint: 'City',
                                   initialValue: 'Coimbatore',
                                   isReadOnly: true,
+                                  scaleF: scaleF,
+                                  fs: fs,
                                   onChanged: (_) {},
                                 ),
                               ),
-                              const SizedBox(width: 16),
+                              SizedBox(width: scaleF(16)),
                               Expanded(
                                 child: _buildTextField(
+                                  context: context,
                                   hint: 'Pincode',
                                   controller: _pincodeController,
                                   keyboardType: TextInputType.number,
+                                  scaleF: scaleF,
+                                  fs: fs,
                                   onChanged: (value) => context.read<CustomersProfileViewModel>().add(ProfileFieldChanged(pincode: value)),
                                 ),
                               ),
@@ -200,8 +226,8 @@ class _CustomersProfileViewState extends State<CustomersProfileView> {
                           // Display fetched location if available
                           if (state.model.fetchedLocation.isNotEmpty)
                             Container(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              margin: EdgeInsets.only(bottom: scaleF(12)),
+                              padding: EdgeInsets.symmetric(horizontal: scaleF(16), vertical: scaleF(12)),
                               decoration: BoxDecoration(
                                 color: Colors.green.withOpacity(0.05),
                                 border: Border.all(color: Colors.green.withOpacity(0.5), width: 1.5),
@@ -215,7 +241,7 @@ class _CustomersProfileViewState extends State<CustomersProfileView> {
                                     child: Text(
                                       'Location: ${state.model.fetchedLocation}',
                                       style: GoogleFonts.montserrat(
-                                        fontSize: 12,
+                                        fontSize: fs(12),
                                         fontWeight: FontWeight.bold,
                                         color: Colors.green[700],
                                       ),
@@ -227,7 +253,7 @@ class _CustomersProfileViewState extends State<CustomersProfileView> {
                             
                           SizedBox(
                             width: double.infinity,
-                            height: 50,
+                            height: scaleF(50).clamp(44.0, 56.0),
                             child: OutlinedButton.icon(
                               style: OutlinedButton.styleFrom(
                                 side: const BorderSide(color: CustomersLoginThemeView.primaryBlue, width: 1.5),
@@ -237,39 +263,42 @@ class _CustomersProfileViewState extends State<CustomersProfileView> {
                               onPressed: () {
                                 context.read<CustomersProfileViewModel>().add(const ProfileFetchLocationRequested());
                               },
-                              icon: const Icon(Icons.my_location, size: 20, color: CustomersLoginThemeView.primaryBlue),
+                              icon: Icon(Icons.my_location, size: scaleF(20), color: CustomersLoginThemeView.primaryBlue),
                               label: Text(
                                 state.model.fetchedLocation.isEmpty ? 'Fetch Map Location' : 'Refresh Map Location',
                                 style: GoogleFonts.montserrat(
-                                  fontSize: 14,
+                                  fontSize: fs(14),
                                   fontWeight: FontWeight.bold,
                                   color: CustomersLoginThemeView.primaryBlue,
                                 ),
                               ),
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          SizedBox(height: scaleF(24)),
                           Text(
                             'Referral',
                             style: GoogleFonts.montserrat(
-                              fontSize: 16,
+                              fontSize: fs(16),
                               fontWeight: FontWeight.bold,
                               color: CustomersLoginThemeView.primaryBlue,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          SizedBox(height: scaleF(12)),
                           _buildTextField(
+                            context: context,
                             hint: 'Referral Code (Optional)',
                             controller: _referralController,
+                            scaleF: scaleF,
+                            fs: fs,
                             onChanged: (value) => context.read<CustomersProfileViewModel>().add(ProfileFieldChanged(referralCode: value)),
                           ),
-                          const SizedBox(height: 32),
+                          SizedBox(height: scaleF(24)),
                           if (state is ProfileLoading)
                             const Center(child: CircularProgressIndicator(color: CustomersLoginThemeView.primaryBlue))
                           else
                             SizedBox(
                               width: double.infinity,
-                              height: 56,
+                              height: scaleF(52).clamp(44.0, 60.0),
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: CustomersLoginThemeView.primaryBlue,
@@ -279,10 +308,15 @@ class _CustomersProfileViewState extends State<CustomersProfileView> {
                                 onPressed: () {
                                   context.read<CustomersProfileViewModel>().add(ProfileSubmit());
                                 },
-                                child: Text('Save & Go to Home', style: CustomersLoginThemeView.buttonTextStyle),
+                                child: Text(
+                                  'Save & Go to Home',
+                                  style: CustomersLoginThemeView.buttonTextStyle.copyWith(
+                                    fontSize: fs(15),
+                                  ),
+                                ),
                               ),
                             ),
-                          const SizedBox(height: 32),
+                          SizedBox(height: scaleF(32)),
                         ],
                       ),
                     ),
@@ -292,7 +326,6 @@ class _CustomersProfileViewState extends State<CustomersProfileView> {
             );
           },
         ),
-      ),
-    );
+      );
+    }
   }
-}

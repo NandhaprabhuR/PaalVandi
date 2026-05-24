@@ -7,11 +7,28 @@ import '../widgets/subscription_call_dialog.dart';
 import '../widgets/subscription_plan_card.dart';
 import 'subscription_bottom_sheets.dart';
 import 'your_subscriptions_view.dart';
+import '../../core/widgets/paalvandi_confirm_dialog.dart';
 
 class SubscriptionsTabView extends StatelessWidget {
   const SubscriptionsTabView({super.key});
 
   void _openSheet(BuildContext context, SubscriptionPlan plan) {
+    final store = SubscriptionsScope.of(context);
+    if (store.bookings.any((b) => b.planTitle == plan.title)) {
+      showPaalvandiConfirmDialog(
+        context,
+        title: 'Active Subscription Found',
+        message: 'You already have an active subscription for ${plan.title}. Would you like to view your active subscriptions?',
+        noLabel: 'Cancel',
+        yesLabel: 'View',
+      ).then((view) {
+        if (view == true && context.mounted) {
+          _openYourSubscriptions(context);
+        }
+      });
+      return;
+    }
+
     switch (plan.title) {
       case 'Family Subscription':
         showFamilySubscriptionSheet(context);
@@ -29,9 +46,13 @@ class SubscriptionsTabView extends StatelessWidget {
   }
 
   void _openYourSubscriptions(BuildContext context) {
+    final store = SubscriptionsScope.of(context);
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => const YourSubscriptionsView(),
+        builder: (_) => SubscriptionsScope(
+          store: store,
+          child: const YourSubscriptionsView(),
+        ),
       ),
     );
   }
@@ -44,9 +65,9 @@ class SubscriptionsTabView extends StatelessWidget {
       animation: store,
       builder: (context, _) {
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: CustomersLoginThemeView.scaffoldBackgroundColor,
           appBar: AppBar(
-            backgroundColor: Colors.white,
+            backgroundColor: CustomersLoginThemeView.scaffoldBackgroundColor,
             elevation: 0,
             scrolledUnderElevation: 0,
             centerTitle: true,
@@ -93,6 +114,7 @@ class SubscriptionsTabView extends StatelessWidget {
               }
 
               if (store.hasBookings && index == 1) {
+                final hasUnpaid = store.bookings.any((b) => !b.isFullyPaid);
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 14),
                   child: SizedBox(
@@ -100,11 +122,20 @@ class SubscriptionsTabView extends StatelessWidget {
                     height: 44,
                     child: OutlinedButton.icon(
                       onPressed: () => _openYourSubscriptions(context),
-                      icon: const Icon(
-                        Icons.inventory_2_outlined,
-                        size: 20,
-                        color: CustomersLoginThemeView.primaryBlue,
-                      ),
+                      icon: hasUnpaid
+                          ? const Badge(
+                              backgroundColor: CustomersLoginThemeView.sectionHeadingRed,
+                              child: Icon(
+                                Icons.inventory_2_outlined,
+                                size: 20,
+                                color: CustomersLoginThemeView.primaryBlue,
+                              ),
+                            )
+                          : const Icon(
+                              Icons.inventory_2_outlined,
+                              size: 20,
+                              color: CustomersLoginThemeView.primaryBlue,
+                            ),
                       label: Text(
                         'Your Subscriptions',
                         style: GoogleFonts.montserrat(
@@ -131,8 +162,10 @@ class SubscriptionsTabView extends StatelessWidget {
               final planIndex =
                   index - 1 - (store.hasBookings ? 1 : 0);
               final plan = SubscriptionPlans.all[planIndex];
+              final isActivePlan = store.bookings.any((b) => b.planTitle == plan.title);
               return SubscriptionPlanCard(
                 plan: plan,
+                isActive: isActivePlan,
                 onSubscribe: () => _openSheet(context, plan),
               );
             },

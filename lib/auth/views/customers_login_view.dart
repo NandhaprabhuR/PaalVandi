@@ -4,81 +4,88 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../viewmodels/customers_login_viewmodel.dart';
 import '../../theme/customers_login_themeview.dart';
+import '../../core/widgets/responsive_helper.dart';
 
 class CustomersLoginView extends StatelessWidget {
   const CustomersLoginView({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final scaleF = (double val) => ResponsiveHelper.scaledValue(context, val);
+    final fs = (double size) => ResponsiveHelper.scaledFontSize(context, size);
+    final hPadding = ResponsiveHelper.horizontalPadding(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Container(
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('assets/background_images/login_background.png'),
-            fit: BoxFit.cover,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        automaticallyImplyLeading: false,
+        title: Text(
+          'PaalVandi',
+          style: CustomersLoginThemeView.brandTitleStyle.copyWith(
+            fontSize: fs(24),
+            letterSpacing: 1.5,
           ),
         ),
-        child: BlocConsumer<CustomersLoginViewModel, CustomersLoginState>(
-          listener: (context, state) {
-            if (state is LoginOtpSent) {
-              context.go('/otp', extra: state.phoneNumber);
-            } else if (state is LoginFailure) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.error)),
-              );
-            }
-          },
-          builder: (context, state) {
-            return SafeArea(
-              child: CustomScrollView(
-                slivers: [
-                  SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                      child: Column(
-                        children: [
-                          const SizedBox(height: 60),
-                          // Logo Area (Wait for actual images, using icons for now)
-                          const Icon(
-                            Icons.local_shipping_outlined,
-                            size: 80,
+        centerTitle: true,
+      ),
+      body: BlocConsumer<CustomersLoginViewModel, CustomersLoginState>(
+        listener: (context, state) {
+          if (state is LoginOtpSent) {
+            context.go('/otp', extra: state.phoneNumber);
+          } else if (state is LoginFailure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(state.error)),
+            );
+          }
+        },
+        builder: (context, state) {
+          return SafeArea(
+            child: CustomScrollView(
+              slivers: [
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: hPadding),
+                    child: Column(
+                      children: [
+                        SizedBox(height: scaleF(30)),
+                        // Logo Area
+                        Icon(
+                          Icons.local_shipping_outlined,
+                          size: scaleF(64).clamp(50.0, 80.0),
+                          color: CustomersLoginThemeView.primaryBlue,
+                        ),
+                        SizedBox(height: scaleF(10)),
+                        Text(
+                          '— FRESH MILK, EVERY DAY —',
+                          style: GoogleFonts.montserrat(
+                            fontSize: fs(11),
+                            fontWeight: FontWeight.bold,
                             color: CustomersLoginThemeView.primaryBlue,
+                            letterSpacing: 1.0,
                           ),
-                          const SizedBox(height: 10),
-                    Text(
-                      'PaalVandi',
-                      style: GoogleFonts.montserrat(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w900,
-                        color: CustomersLoginThemeView.primaryBlue,
-                        letterSpacing: 2.0,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '— FRESH MILK, EVERY DAY —',
-                      style: GoogleFonts.montserrat(
-                              fontWeight: FontWeight.bold,
-                              color: CustomersLoginThemeView.primaryBlue,
-                              letterSpacing: 1.0,
-                            ),
-                          ),
-                          const SizedBox(height: 60),
+                        ),
+                        SizedBox(height: scaleF(30)),
 
                           // Login texts
                           Text(
                             'Login with Phone',
-                            style: CustomersLoginThemeView.titleStyle,
+                            style: CustomersLoginThemeView.titleStyle.copyWith(
+                              fontSize: fs(18),
+                            ),
                           ),
-                          const SizedBox(height: 8),
+                          SizedBox(height: scaleF(8)),
                           Text(
                             'We will send you an OTP\nto verify your number',
-                            style: CustomersLoginThemeView.subtitleStyle,
+                            style: CustomersLoginThemeView.subtitleStyle.copyWith(
+                              fontSize: fs(13),
+                            ),
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 32),
+                          SizedBox(height: scaleF(24)),
 
                           // Phone Input Field
                           Container(
@@ -89,16 +96,16 @@ class CustomersLoginView extends StatelessWidget {
                             ),
                             child: Row(
                               children: [
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: scaleF(12)),
                                   child: Row(
                                     children: [
-                                      Text('🇮🇳', style: TextStyle(fontSize: 20)),
-                                      SizedBox(width: 8),
+                                      Text('🇮🇳', style: TextStyle(fontSize: fs(20))),
+                                      const SizedBox(width: 6),
                                       Text(
                                         '+91',
                                         style: TextStyle(
-                                          fontSize: 18,
+                                          fontSize: fs(16),
                                           fontWeight: FontWeight.bold,
                                           color: CustomersLoginThemeView.textDark,
                                         ),
@@ -109,18 +116,18 @@ class CustomersLoginView extends StatelessWidget {
                                 ),
                                 Container(
                                   width: 1,
-                                  height: 30,
+                                  height: scaleF(30).clamp(24.0, 36.0),
                                   color: CustomersLoginThemeView.borderColor,
                                 ),
                                 Expanded(
                                   child: TextField(
                                     keyboardType: TextInputType.phone,
-                                    style: const TextStyle(fontSize: 18, color: CustomersLoginThemeView.textDark),
+                                    style: TextStyle(fontSize: fs(16), color: CustomersLoginThemeView.textDark),
                                     decoration: InputDecoration(
-                                      hintText: 'Enter your mobile number',
-                                      hintStyle: CustomersLoginThemeView.hintStyle,
+                                      hintText: 'Enter mobile number',
+                                      hintStyle: CustomersLoginThemeView.hintStyle.copyWith(fontSize: fs(14)),
                                       border: InputBorder.none,
-                                      contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                      contentPadding: EdgeInsets.symmetric(horizontal: scaleF(14), vertical: scaleF(14)),
                                     ),
                                     onChanged: (value) {
                                       final fullNumber = value.startsWith('+') ? value : '+91$value';
@@ -131,7 +138,7 @@ class CustomersLoginView extends StatelessWidget {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          SizedBox(height: scaleF(20)),
 
                           // Send OTP Button
                           if (state is LoginLoading)
@@ -139,7 +146,7 @@ class CustomersLoginView extends StatelessWidget {
                           else
                             SizedBox(
                               width: double.infinity,
-                              height: 56,
+                              height: scaleF(52).clamp(44.0, 60.0),
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: CustomersLoginThemeView.primaryBlue,
@@ -152,43 +159,49 @@ class CustomersLoginView extends StatelessWidget {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Text('Send OTP', style: CustomersLoginThemeView.buttonTextStyle),
-                                    SizedBox(width: 8),
-                                    Icon(Icons.arrow_forward, color: Colors.white),
+                                    Text(
+                                      'Send OTP',
+                                      style: CustomersLoginThemeView.buttonTextStyle.copyWith(
+                                        fontSize: fs(15),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Icon(Icons.arrow_forward, color: Colors.white),
                                   ],
                                 ),
                               ),
                             ),
                           
-                          const SizedBox(height: 40),
+                          SizedBox(height: scaleF(32)),
 
                           // Feature Row
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildFeatureItem(Icons.water_drop_outlined, 'No Water\nAdded'),
-                              _buildDivider(),
-                              _buildNoPreservativeIcon(),
-                              _buildDivider(),
-                              _buildFeatureItem(Icons.local_drink_outlined, 'Delivered in\nGlass Bottles'),
+                              _buildFeatureItem(context, Icons.water_drop_outlined, 'No Water\nAdded', fs, scaleF),
+                              _buildDivider(scaleF),
+                              _buildNoPreservativeIcon(context, fs, scaleF),
+                              _buildDivider(scaleF),
+                              _buildFeatureItem(context, Icons.local_drink_outlined, 'Delivered in\nGlass Bottles', fs, scaleF),
                             ],
                           ),
 
-                          const Spacer(), // Pushes the footer exactly to the bottom
+                          const Spacer(),
+                          SizedBox(height: scaleF(20)),
 
                           // Footer
-                          const Padding(
-                            padding: EdgeInsets.only(bottom: 20.0),
+                          Padding(
+                            padding: EdgeInsets.only(bottom: scaleF(20)),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.verified_user_outlined, color: CustomersLoginThemeView.primaryBlue, size: 20),
-                                SizedBox(width: 8),
+                                Icon(Icons.verified_user_outlined, color: CustomersLoginThemeView.primaryBlue, size: scaleF(20)),
+                                const SizedBox(width: 8),
                                 Text(
                                   'Pure Milk. Pure Life.',
                                   style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: fs(14),
                                     fontWeight: FontWeight.w600,
                                     color: CustomersLoginThemeView.textDark,
                                   ),
@@ -205,41 +218,54 @@ class CustomersLoginView extends StatelessWidget {
             );
           },
         ),
-      ),
-    );
-  }
+      );
+    }
 
-  Widget _buildFeatureItem(IconData icon, String text) {
+  Widget _buildFeatureItem(
+    BuildContext context,
+    IconData icon,
+    String text,
+    double Function(double) fs,
+    double Function(double) scaleF,
+  ) {
+    final boxSize = scaleF(65).clamp(52.0, 76.0);
     return Expanded(
       child: Column(
         children: [
           Container(
-            width: 65,
-            height: 65,
+            width: boxSize,
+            height: boxSize,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: CustomersLoginThemeView.primaryBlue.withOpacity(0.06), // Very light blue background
+              color: CustomersLoginThemeView.primaryBlue.withOpacity(0.06),
             ),
-            child: Icon(icon, color: CustomersLoginThemeView.primaryBlue, size: 30),
+            child: Icon(icon, color: CustomersLoginThemeView.primaryBlue, size: scaleF(30).clamp(24.0, 36.0)),
           ),
           const SizedBox(height: 12),
           Text(
             text,
             textAlign: TextAlign.center,
-            style: CustomersLoginThemeView.featureTextStyle,
+            style: CustomersLoginThemeView.featureTextStyle.copyWith(
+              fontSize: fs(10),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildNoPreservativeIcon() {
+  Widget _buildNoPreservativeIcon(
+    BuildContext context,
+    double Function(double) fs,
+    double Function(double) scaleF,
+  ) {
+    final boxSize = scaleF(65).clamp(52.0, 76.0);
     return Expanded(
       child: Column(
         children: [
           Container(
-            width: 65,
-            height: 65,
+            width: boxSize,
+            height: boxSize,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: CustomersLoginThemeView.primaryBlue.withOpacity(0.06),
@@ -247,12 +273,12 @@ class CustomersLoginView extends StatelessWidget {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                const Icon(Icons.science_outlined, color: CustomersLoginThemeView.primaryBlue, size: 30),
+                Icon(Icons.science_outlined, color: CustomersLoginThemeView.primaryBlue, size: scaleF(30).clamp(24.0, 36.0)),
                 Transform.rotate(
-                  angle: -0.785, // -45 degree line over the icon
+                  angle: -0.785,
                   child: Container(
                     width: 2.5,
-                    height: 38,
+                    height: scaleF(38).clamp(30.0, 44.0),
                     color: CustomersLoginThemeView.primaryBlue,
                   ),
                 ),
@@ -263,19 +289,21 @@ class CustomersLoginView extends StatelessWidget {
           Text(
             'No Preservatives\nAdded',
             textAlign: TextAlign.center,
-            style: CustomersLoginThemeView.featureTextStyle,
+            style: CustomersLoginThemeView.featureTextStyle.copyWith(
+              fontSize: fs(10),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDivider() {
+  Widget _buildDivider(double Function(double) scaleF) {
     return Padding(
       padding: const EdgeInsets.only(top: 10),
       child: Container(
         width: 1,
-        height: 40,
+        height: scaleF(40).clamp(32.0, 48.0),
         color: CustomersLoginThemeView.borderColor,
         margin: const EdgeInsets.symmetric(horizontal: 4),
       ),

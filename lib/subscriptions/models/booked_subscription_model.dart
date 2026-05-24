@@ -8,6 +8,7 @@ class BookedSubscription {
   final int monthlyBillRupees;
   final int advanceRupees;
   final int balanceOnFullPaymentRupees;
+  final bool isFullyPaid;
 
   const BookedSubscription({
     required this.planTitle,
@@ -19,5 +20,6 @@ class BookedSubscription {
     this.monthlyBillRupees = 0,
     this.advanceRupees = 200,
     this.balanceOnFullPaymentRupees = 0,
+    this.isFullyPaid = false,
   });
 }

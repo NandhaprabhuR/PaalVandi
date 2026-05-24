@@ -1,28 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../theme/customers_login_themeview.dart';
+import '../../core/widgets/responsive_helper.dart';
 import '../models/subscription_plan_model.dart';
 
 /// Landscape coupon-style card used on the Subscriptions tab.
 class SubscriptionPlanCard extends StatelessWidget {
   final SubscriptionPlan plan;
   final VoidCallback onSubscribe;
+  final bool isActive;
 
   const SubscriptionPlanCard({
     super.key,
     required this.plan,
     required this.onSubscribe,
+    this.isActive = false,
   });
 
-  static const double cardHeight = 178;
   static const double cardRadius = 28;
 
   @override
   Widget build(BuildContext context) {
+    final fs = (double size) => ResponsiveHelper.scaledFontSize(context, size);
+    final scaleF = (double val) => ResponsiveHelper.scaledValue(context, val);
+
     return Container(
-      height: cardHeight,
       width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.only(bottom: scaleF(12)),
       decoration: BoxDecoration(
         color: plan.cardTint,
         borderRadius: BorderRadius.circular(cardRadius),
@@ -32,54 +36,82 @@ class SubscriptionPlanCard extends StatelessWidget {
         child: Stack(
           children: [
             Positioned(
-              right: 10,
-              top: 12,
+              right: scaleF(10),
+              top: scaleF(12),
               child: Icon(
                 plan.icon,
-                size: 76,
+                size: scaleF(76).clamp(60.0, 90.0),
                 color: CustomersLoginThemeView.primaryBlue.withValues(
                   alpha: 0.14,
                 ),
               ),
             ),
+            if (isActive)
+              Positioned(
+                right: scaleF(16),
+                top: scaleF(16),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2E7D32),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.check_circle_rounded, color: Colors.white, size: 12),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Active',
+                        style: GoogleFonts.montserrat(
+                          fontSize: fs(10),
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
+              padding: EdgeInsets.fromLTRB(scaleF(16), scaleF(16), scaleF(16), scaleF(16)),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min, // shrink-wrap contents dynamically!
                 children: [
                   Text(
                     plan.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.montserrat(
-                      fontSize: 17,
+                      fontSize: fs(17),
                       fontWeight: FontWeight.w800,
                       color: CustomersLoginThemeView.sectionHeadingRed,
                       height: 1.1,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: scaleF(6)),
                   Text(
                     plan.description,
-                    maxLines: 2,
+                    maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.montserrat(
-                      fontSize: 12,
+                      fontSize: fs(12),
                       fontWeight: FontWeight.w500,
                       color: CustomersLoginThemeView.textDark,
                       height: 1.25,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: scaleF(6)),
                   Text(
                     'You can cancel anytime',
                     style: GoogleFonts.montserrat(
-                      fontSize: 11,
+                      fontSize: fs(11),
                       fontWeight: FontWeight.w700,
                       color: CustomersLoginThemeView.sectionHeadingRed,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  SizedBox(height: scaleF(8)),
                   Wrap(
                     spacing: 5,
                     runSpacing: 4,
@@ -98,7 +130,7 @@ class SubscriptionPlanCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.montserrat(
-                            fontSize: 10,
+                            fontSize: fs(10),
                             fontWeight: FontWeight.w600,
                             color: CustomersLoginThemeView.textDark,
                           ),
@@ -106,10 +138,10 @@ class SubscriptionPlanCard extends StatelessWidget {
                       );
                     }).toList(),
                   ),
-                  const Spacer(),
+                  SizedBox(height: scaleF(14)), // Small spacing directly above the button
                   SizedBox(
                     width: double.infinity,
-                    height: 36,
+                    height: scaleF(36).clamp(32.0, 42.0),
                     child: ElevatedButton(
                       onPressed: onSubscribe,
                       style: ElevatedButton.styleFrom(
@@ -117,7 +149,6 @@ class SubscriptionPlanCard extends StatelessWidget {
                             CustomersLoginThemeView.primaryBlue,
                         foregroundColor: Colors.white,
                         elevation: 0,
-                        minimumSize: const Size(double.infinity, 36),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -125,7 +156,7 @@ class SubscriptionPlanCard extends StatelessWidget {
                       child: Text(
                         'Subscribe',
                         style: GoogleFonts.montserrat(
-                          fontSize: 13,
+                          fontSize: fs(13),
                           fontWeight: FontWeight.w700,
                         ),
                       ),

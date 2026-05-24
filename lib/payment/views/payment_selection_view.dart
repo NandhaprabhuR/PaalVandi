@@ -3,10 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../cart/viewmodels/cart_scope.dart';
 import '../../theme/customers_login_themeview.dart';
+import '../../core/widgets/responsive_helper.dart';
 import '../models/payment_model.dart';
 import '../viewmodels/payment_viewmodel.dart';
 import 'order_tracking_view.dart';
 import 'payment_success_view.dart';
+import '../../profile/viewmodels/customers_profile_viewmodel.dart';
+import '../../profile/views/add_address_view.dart';
 
 class PaymentSelectionView extends StatelessWidget {
   const PaymentSelectionView({super.key});
@@ -49,6 +52,10 @@ class _PaymentSelectionBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final scaleF = (double val) => ResponsiveHelper.scaledValue(context, val);
+    final fs = (double size) => ResponsiveHelper.scaledFontSize(context, size);
+    final hPadding = ResponsiveHelper.horizontalPadding(context);
+
     return BlocConsumer<PaymentViewModel, PaymentState>(
       listener: (context, state) {
         if (state is PaymentFailure) {
@@ -58,7 +65,10 @@ class _PaymentSelectionBody extends StatelessWidget {
               backgroundColor: CustomersLoginThemeView.sectionHeadingRed,
               content: Text(
                 state.error,
-                style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+                style: GoogleFonts.montserrat(
+                  fontWeight: FontWeight.w600,
+                  fontSize: fs(14),
+                ),
               ),
             ),
           );
@@ -79,16 +89,17 @@ class _PaymentSelectionBody extends StatelessWidget {
             elevation: 0,
             scrolledUnderElevation: 0,
             leading: IconButton(
-              icon: const Icon(
+              icon: Icon(
                 Icons.arrow_back,
                 color: CustomersLoginThemeView.primaryBlue,
+                size: scaleF(24).clamp(20.0, 28.0),
               ),
               onPressed: processing ? null : () => Navigator.pop(context),
             ),
             title: Text(
               'Payment Method',
               style: CustomersLoginThemeView.brandTitleStyle.copyWith(
-                fontSize: 22,
+                fontSize: fs(22),
                 letterSpacing: 0.5,
               ),
             ),
@@ -97,31 +108,112 @@ class _PaymentSelectionBody extends StatelessWidget {
           body: Stack(
             children: [
               SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 100),
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(hPadding, scaleF(4), hPadding, scaleF(100)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'Choose how you would like to complete your order',
                       style: GoogleFonts.montserrat(
-                        fontSize: 13,
+                        fontSize: fs(13),
                         fontWeight: FontWeight.w500,
                         color: CustomersLoginThemeView.textGrey,
                         height: 1.35,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    _OrderSummaryCard(lines: model.summaryLines, total: model.totalRupees),
-                    const SizedBox(height: 22),
+                    SizedBox(height: scaleF(16)),
+
+                    // Delivering Here active address card with Pencil edit button
+                    BlocBuilder<CustomersProfileViewModel, CustomersProfileState>(
+                      builder: (context, profileState) {
+                        final model = profileState.model;
+                        String displayAddress = 'Coimbatore (Primary)';
+                        if (model.street.isNotEmpty) {
+                          final parts = [
+                            if (model.houseNo.isNotEmpty) model.houseNo,
+                            if (model.apartmentName.isNotEmpty) model.apartmentName,
+                            model.street,
+                          ];
+                          displayAddress = '${parts.join(', ')} (${model.deliveryPreference})';
+                        }
+
+                        return Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.symmetric(horizontal: scaleF(14), vertical: scaleF(10)),
+                          decoration: BoxDecoration(
+                            color: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(
+                              color: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.15),
+                              width: 1.2,
+                            ),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.location_on_outlined,
+                                color: CustomersLoginThemeView.primaryBlue,
+                                size: scaleF(22),
+                              ),
+                              SizedBox(width: scaleF(12)),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Delivering Here',
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: fs(13),
+                                        fontWeight: FontWeight.bold,
+                                        color: CustomersLoginThemeView.primaryBlue,
+                                      ),
+                                    ),
+                                    SizedBox(height: scaleF(4)),
+                                    Text(
+                                      displayAddress,
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: fs(12),
+                                        fontWeight: FontWeight.w600,
+                                        color: CustomersLoginThemeView.textDark,
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              IconButton(
+                                icon: Icon(
+                                  Icons.edit_outlined,
+                                  color: CustomersLoginThemeView.primaryBlue,
+                                  size: scaleF(20),
+                                ),
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (_) => const AddAddressView(),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                    SizedBox(height: scaleF(16)),
+                    _OrderSummaryCard(lines: model.summaryLines, total: model.totalRupees, fs: fs, scaleF: scaleF),
+                    SizedBox(height: scaleF(22)),
                     Text(
                       'Select Payment Method',
                       style: GoogleFonts.montserrat(
-                        fontSize: 16,
+                        fontSize: fs(16),
                         fontWeight: FontWeight.w800,
                         color: CustomersLoginThemeView.textDark,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: scaleF(12)),
                     _PaymentMethodCard(
                       emoji: '💳',
                       title: 'Pay Now (UPI)',
@@ -141,13 +233,17 @@ class _PaymentSelectionBody extends StatelessWidget {
                       onTap: () => context.read<PaymentViewModel>().add(
                             const SelectPaymentMethod(PaalvandiPaymentMethod.payNowUpi),
                           ),
+                      fs: fs,
+                      scaleF: scaleF,
                       expandedChild: _UpiAppsSection(
                         selected: model.selectedUpiApp,
                         onSelect: (app) =>
                             context.read<PaymentViewModel>().add(SelectUpiApp(app)),
+                        fs: fs,
+                        scaleF: scaleF,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: scaleF(12)),
                     _PaymentMethodCard(
                       emoji: '🚚',
                       title: 'Pay at Delivery',
@@ -161,7 +257,9 @@ class _PaymentSelectionBody extends StatelessWidget {
                               PaalvandiPaymentMethod.payAtDelivery,
                             ),
                           ),
-                      expandedChild: _PayAtDeliverySection(),
+                      fs: fs,
+                      scaleF: scaleF,
+                      expandedChild: _PayAtDeliverySection(fs: fs, scaleF: scaleF),
                     ),
                   ],
                 ),
@@ -169,7 +267,7 @@ class _PaymentSelectionBody extends StatelessWidget {
               Align(
                 alignment: Alignment.bottomCenter,
                 child: Container(
-                  padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+                  padding: EdgeInsets.fromLTRB(hPadding, scaleF(10), hPadding, scaleF(12)),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     boxShadow: [
@@ -184,7 +282,7 @@ class _PaymentSelectionBody extends StatelessWidget {
                     top: false,
                     child: SizedBox(
                       width: double.infinity,
-                      height: 48,
+                      height: scaleF(48).clamp(42.0, 54.0),
                       child: ElevatedButton(
                         onPressed: processing
                             ? null
@@ -200,10 +298,10 @@ class _PaymentSelectionBody extends StatelessWidget {
                           ),
                         ),
                         child: processing
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
+                            ? SizedBox(
+                                width: scaleF(22),
+                                height: scaleF(22),
+                                child: const CircularProgressIndicator(
                                   strokeWidth: 2,
                                   color: Colors.white,
                                 ),
@@ -211,7 +309,7 @@ class _PaymentSelectionBody extends StatelessWidget {
                             : Text(
                                 'Continue',
                                 style: GoogleFonts.montserrat(
-                                  fontSize: 15,
+                                  fontSize: fs(15),
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
@@ -231,20 +329,27 @@ class _PaymentSelectionBody extends StatelessWidget {
 class _OrderSummaryCard extends StatelessWidget {
   final List<OrderSummaryLine> lines;
   final int total;
+  final double Function(double) fs;
+  final double Function(double) scaleF;
 
-  const _OrderSummaryCard({required this.lines, required this.total});
+  const _OrderSummaryCard({
+    required this.lines,
+    required this.total,
+    required this.fs,
+    required this.scaleF,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(scaleF(16)),
       decoration: CustomersLoginThemeView.cardDecoration,
       child: Column(
         children: [
           ...lines.map(
             (line) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
+              padding: EdgeInsets.only(bottom: scaleF(8)),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -252,7 +357,7 @@ class _OrderSummaryCard extends StatelessWidget {
                     child: Text(
                       line.label,
                       style: GoogleFonts.montserrat(
-                        fontSize: 13,
+                        fontSize: fs(13),
                         fontWeight: FontWeight.w500,
                         color: CustomersLoginThemeView.textDark,
                       ),
@@ -261,7 +366,7 @@ class _OrderSummaryCard extends StatelessWidget {
                   Text(
                     '₹${line.amountRupees}',
                     style: GoogleFonts.montserrat(
-                      fontSize: 13,
+                      fontSize: fs(13),
                       fontWeight: FontWeight.w600,
                       color: CustomersLoginThemeView.textDark,
                     ),
@@ -277,7 +382,7 @@ class _OrderSummaryCard extends StatelessWidget {
               Text(
                 'Total',
                 style: GoogleFonts.montserrat(
-                  fontSize: 16,
+                  fontSize: fs(16),
                   fontWeight: FontWeight.w800,
                   color: CustomersLoginThemeView.textDark,
                 ),
@@ -285,7 +390,7 @@ class _OrderSummaryCard extends StatelessWidget {
               Text(
                 '₹$total',
                 style: GoogleFonts.montserrat(
-                  fontSize: 18,
+                  fontSize: fs(18),
                   fontWeight: FontWeight.w800,
                   color: CustomersLoginThemeView.priceAccent,
                 ),
@@ -308,6 +413,8 @@ class _PaymentMethodCard extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
   final Widget expandedChild;
+  final double Function(double) fs;
+  final double Function(double) scaleF;
 
   const _PaymentMethodCard({
     required this.emoji,
@@ -319,6 +426,8 @@ class _PaymentMethodCard extends StatelessWidget {
     required this.selected,
     required this.onTap,
     required this.expandedChild,
+    required this.fs,
+    required this.scaleF,
   });
 
   @override
@@ -364,12 +473,12 @@ class _PaymentMethodCard extends StatelessWidget {
               onTap: onTap,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
               child: Padding(
-                padding: const EdgeInsets.all(14),
+                padding: EdgeInsets.all(scaleF(14)),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(emoji, style: const TextStyle(fontSize: 26)),
-                    const SizedBox(width: 10),
+                    Text(emoji, style: TextStyle(fontSize: fs(26))),
+                    SizedBox(width: scaleF(10)),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,40 +486,40 @@ class _PaymentMethodCard extends StatelessWidget {
                           Text(
                             title,
                             style: GoogleFonts.montserrat(
-                              fontSize: 15,
+                              fontSize: fs(15),
                               fontWeight: FontWeight.w800,
                               color: CustomersLoginThemeView.textDark,
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          SizedBox(height: scaleF(6)),
                           Text(
                             description,
                             style: GoogleFonts.montserrat(
-                              fontSize: 12,
+                              fontSize: fs(12),
                               color: CustomersLoginThemeView.textGrey,
                               height: 1.3,
                             ),
                           ),
                           if (bullets.isNotEmpty) ...[
-                            const SizedBox(height: 6),
+                            SizedBox(height: scaleF(6)),
                             ...bullets.map(
                               (b) => Padding(
                                 padding: const EdgeInsets.only(bottom: 2),
                                 child: Text(
                                   '• $b',
                                   style: GoogleFonts.montserrat(
-                                    fontSize: 11,
+                                    fontSize: fs(11),
                                     color: CustomersLoginThemeView.quantityAccent,
                                   ),
                                 ),
                               ),
                             ),
                           ],
-                          const SizedBox(height: 6),
+                          SizedBox(height: scaleF(6)),
                           Text(
                             footer,
                             style: GoogleFonts.montserrat(
-                              fontSize: 10,
+                              fontSize: fs(10),
                               fontWeight: FontWeight.w600,
                               color: CustomersLoginThemeView.primaryBlue,
                             ),
@@ -427,8 +536,9 @@ class _PaymentMethodCard extends StatelessWidget {
                           color: selected
                               ? CustomersLoginThemeView.primaryBlue
                               : CustomersLoginThemeView.textGrey,
+                          size: scaleF(24).clamp(20.0, 28.0),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: scaleF(8)),
                         Row(
                           children: trailingIcons
                               .map(
@@ -436,7 +546,7 @@ class _PaymentMethodCard extends StatelessWidget {
                                   padding: const EdgeInsets.only(left: 4),
                                   child: Icon(
                                     icon,
-                                    size: 20,
+                                    size: scaleF(20).clamp(16.0, 24.0),
                                     color: CustomersLoginThemeView.primaryBlue
                                         .withValues(alpha: 0.7),
                                   ),
@@ -468,32 +578,41 @@ class _PaymentMethodCard extends StatelessWidget {
 class _UpiAppsSection extends StatelessWidget {
   final UpiAppOption selected;
   final ValueChanged<UpiAppOption> onSelect;
+  final double Function(double) fs;
+  final double Function(double) scaleF;
 
-  const _UpiAppsSection({required this.selected, required this.onSelect});
+  const _UpiAppsSection({
+    required this.selected,
+    required this.onSelect,
+    required this.fs,
+    required this.scaleF,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+      padding: EdgeInsets.fromLTRB(scaleF(14), 0, scaleF(14), scaleF(14)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Divider(height: 1),
-          const SizedBox(height: 12),
+          SizedBox(height: scaleF(12)),
           Text(
             'Available Apps',
             style: GoogleFonts.montserrat(
-              fontSize: 13,
+              fontSize: fs(13),
               fontWeight: FontWeight.w700,
               color: CustomersLoginThemeView.textDark,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: scaleF(8)),
           ...UpiAppOption.values.map(
             (app) => _RadioTile(
               label: app.label,
               selected: app == selected,
               onTap: () => onSelect(app),
+              fs: fs,
+              scaleF: scaleF,
             ),
           ),
         ],
@@ -503,35 +622,40 @@ class _UpiAppsSection extends StatelessWidget {
 }
 
 class _PayAtDeliverySection extends StatelessWidget {
+  final double Function(double) fs;
+  final double Function(double) scaleF;
+
+  const _PayAtDeliverySection({required this.fs, required this.scaleF});
+
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+      padding: EdgeInsets.fromLTRB(scaleF(14), 0, scaleF(14), scaleF(14)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Divider(height: 1),
-          const SizedBox(height: 12),
+          SizedBox(height: scaleF(12)),
           Text(
             'Payment Information',
             style: GoogleFonts.montserrat(
-              fontSize: 13,
+              fontSize: fs(13),
               fontWeight: FontWeight.w700,
               color: CustomersLoginThemeView.textDark,
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: scaleF(8)),
           Text(
             'Please scan the delivery QR code and complete payment after receiving your order.',
             style: GoogleFonts.montserrat(
-              fontSize: 12,
+              fontSize: fs(12),
               color: CustomersLoginThemeView.textGrey,
               height: 1.4,
             ),
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: scaleF(12)),
           _deliveryInfoRow('🚚', 'Estimated Delivery:', 'Within 20 minutes'),
-          const SizedBox(height: 8),
+          SizedBox(height: scaleF(8)),
           _deliveryInfoRow('⏰', 'Delivery Hours:', 'Morning 5:00 AM to Night 9:00 PM'),
         ],
       ),
@@ -542,13 +666,13 @@ class _PayAtDeliverySection extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(emoji, style: const TextStyle(fontSize: 16)),
-        const SizedBox(width: 8),
+        Text(emoji, style: TextStyle(fontSize: fs(16))),
+        SizedBox(width: scaleF(8)),
         Expanded(
           child: RichText(
             text: TextSpan(
               style: GoogleFonts.montserrat(
-                fontSize: 12,
+                fontSize: fs(12),
                 color: CustomersLoginThemeView.textGrey,
                 height: 1.35,
               ),
@@ -571,11 +695,15 @@ class _RadioTile extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final double Function(double) fs;
+  final double Function(double) scaleF;
 
   const _RadioTile({
     required this.label,
     required this.selected,
     required this.onTap,
+    required this.fs,
+    required this.scaleF,
   });
 
   @override
@@ -584,21 +712,21 @@ class _RadioTile extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
+        padding: EdgeInsets.symmetric(vertical: scaleF(6)),
         child: Row(
           children: [
             Icon(
               selected ? Icons.radio_button_checked : Icons.radio_button_off,
-              size: 20,
+              size: scaleF(20).clamp(16.0, 24.0),
               color: selected
                   ? CustomersLoginThemeView.primaryBlue
                   : CustomersLoginThemeView.textGrey,
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: scaleF(10)),
             Text(
               label,
               style: GoogleFonts.montserrat(
-                fontSize: 13,
+                fontSize: fs(13),
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 color: selected
                     ? CustomersLoginThemeView.primaryBlue

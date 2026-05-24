@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../theme/customers_login_themeview.dart';
+import '../../core/widgets/responsive_helper.dart';
+import '../../profile/viewmodels/customers_profile_viewmodel.dart';
 import '../models/home_catalog_data.dart';
 import 'widgets/home_feature_cards.dart';
 import 'widgets/home_product_section.dart';
@@ -40,44 +43,63 @@ class _HomeTabViewState extends State<HomeTabView>
 
   @override
   Widget build(BuildContext context) {
+    final hPadding = ResponsiveHelper.horizontalPadding(context);
+    final fs = (double size) => ResponsiveHelper.scaledFontSize(context, size);
+    final scaleF = (double val) => ResponsiveHelper.scaledValue(context, val);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: CustomersLoginThemeView.scaffoldBackgroundColor,
       body: FadeTransition(
         opacity: _fadeAnimation,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const HomeTopBar(),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 2),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text('📍', style: TextStyle(fontSize: 16)),
-                  const SizedBox(width: 4),
-                  Flexible(
-                    child: Text(
-                      'Delivering to: ${HomeCatalogData.deliveryArea}',
-                      style: GoogleFonts.montserrat(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: CustomersLoginThemeView.textDark,
+            BlocBuilder<CustomersProfileViewModel, CustomersProfileState>(
+              builder: (context, profileState) {
+                final model = profileState.model;
+                String displayAddress = HomeCatalogData.deliveryArea;
+                if (model.street.isNotEmpty) {
+                  final parts = [
+                    if (model.houseNo.isNotEmpty) model.houseNo,
+                    if (model.apartmentName.isNotEmpty) model.apartmentName,
+                    model.street,
+                  ];
+                  displayAddress = '${parts.join(', ')} (${model.deliveryPreference})';
+                }
+
+                return Padding(
+                  padding: EdgeInsets.fromLTRB(hPadding, scaleF(4), hPadding, scaleF(2)),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('📍', style: TextStyle(fontSize: fs(16))),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          'Delivering to: $displayAddress',
+                          style: GoogleFonts.montserrat(
+                            fontSize: fs(13),
+                            fontWeight: FontWeight.w600,
+                            color: CustomersLoginThemeView.textDark,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                );
+              },
             ),
             Expanded(
               child: CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
-                  const SliverToBoxAdapter(child: SizedBox(height: 12)),
+                  SliverToBoxAdapter(child: SizedBox(height: scaleF(12))),
                   SliverToBoxAdapter(
                     child: _buildAnimatedBlock(const HomeFeatureCards()),
                   ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 20)),
+                  SliverToBoxAdapter(child: SizedBox(height: scaleF(20))),
                   for (var i = 0; i < HomeCatalogData.productSections.length; i++)
                     SliverToBoxAdapter(
                       child: _buildAnimatedBlock(
@@ -87,7 +109,7 @@ class _HomeTabViewState extends State<HomeTabView>
                         ),
                       ),
                     ),
-                  const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                  SliverToBoxAdapter(child: SizedBox(height: scaleF(24))),
                 ],
               ),
             ),

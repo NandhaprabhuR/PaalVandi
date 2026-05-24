@@ -4,6 +4,7 @@ import '../../cart/models/cart_models.dart';
 import '../../cart/viewmodels/cart_scope.dart';
 import '../../cart/viewmodels/cart_viewmodel.dart';
 import '../../theme/customers_login_themeview.dart';
+import '../../core/widgets/responsive_helper.dart';
 import '../models/home_catalog_data.dart';
 
 Future<void> showProductOrderBottomSheet(
@@ -49,13 +50,15 @@ class _ProductOrderSheet extends StatefulWidget {
 }
 
 class _ProductOrderSheetState extends State<_ProductOrderSheet> {
-
   DeliveryMethod _method = DeliveryMethod.depositBottle;
 
   bool get _isRefill => _method == DeliveryMethod.bringMyContainer;
 
   @override
   Widget build(BuildContext context) {
+    final scaleF = (double val) => ResponsiveHelper.scaledValue(context, val);
+    final fs = (double size) => ResponsiveHelper.scaledFontSize(context, size);
+    final hPadding = ResponsiveHelper.horizontalPadding(context);
     final bottomInset = MediaQuery.paddingOf(context).bottom;
 
     return AnimatedPadding(
@@ -78,9 +81,9 @@ class _ProductOrderSheetState extends State<_ProductOrderSheet> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 10),
+            SizedBox(height: scaleF(10)),
             Container(
-              width: 40,
+              width: scaleF(40),
               height: 4,
               decoration: BoxDecoration(
                 color: CustomersLoginThemeView.borderColor,
@@ -89,23 +92,24 @@ class _ProductOrderSheetState extends State<_ProductOrderSheet> {
             ),
             Flexible(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(hPadding, scaleF(16), hPadding, scaleF(12)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildProductHeader(),
-                    const SizedBox(height: 16),
-                    const Divider(color: CustomersLoginThemeView.borderColor),
-                    const SizedBox(height: 16),
+                    _buildProductHeader(scaleF, fs),
+                    SizedBox(height: scaleF(16)),
+                    Divider(color: CustomersLoginThemeView.borderColor),
+                    SizedBox(height: scaleF(16)),
                     Text(
                       'Select Delivery Method',
                       style: GoogleFonts.montserrat(
-                        fontSize: 16,
+                        fontSize: fs(16),
                         fontWeight: FontWeight.w800,
                         color: CustomersLoginThemeView.textDark,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: scaleF(12)),
                     _DeliveryOptionCard(
                       selected: _method == DeliveryMethod.depositBottle,
                       onTap: () => setState(
@@ -126,8 +130,10 @@ class _ProductOrderSheetState extends State<_ProductOrderSheet> {
                         '🌿 Eco Friendly',
                         '💧 Premium Glass Delivery',
                       ],
+                      fs: fs,
+                      scaleF: scaleF,
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: scaleF(12)),
                     _DeliveryOptionCard(
                       selected: _method == DeliveryMethod.bringMyContainer,
                       onTap: () => setState(
@@ -148,25 +154,27 @@ class _ProductOrderSheetState extends State<_ProductOrderSheet> {
                         '🌿 Zero waste',
                         '🥛 Refill service',
                       ],
+                      fs: fs,
+                      scaleF: scaleF,
                     ),
-                    SizedBox(height: 88 + bottomInset),
+                    SizedBox(height: scaleF(88) + bottomInset),
                   ],
                 ),
               ),
             ),
-            _buildContinueBar(bottomInset),
+            _buildContinueBar(bottomInset, hPadding, scaleF, fs),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildProductHeader() {
+  Widget _buildProductHeader(double Function(double) scaleF, double Function(double) fs) {
     return Row(
       children: [
         Container(
-          width: 72,
-          height: 72,
+          width: scaleF(72).clamp(56.0, 84.0),
+          height: scaleF(72).clamp(56.0, 84.0),
           decoration: BoxDecoration(
             color: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(16),
@@ -174,13 +182,13 @@ class _ProductOrderSheetState extends State<_ProductOrderSheet> {
               color: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.25),
             ),
           ),
-          child: const Icon(
+          child: Icon(
             Icons.local_drink_outlined,
-            size: 40,
+            size: scaleF(40).clamp(32.0, 48.0),
             color: CustomersLoginThemeView.primaryBlue,
           ),
         ),
-        const SizedBox(width: 14),
+        SizedBox(width: scaleF(14)),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -188,7 +196,7 @@ class _ProductOrderSheetState extends State<_ProductOrderSheet> {
               Text(
                 widget.productName,
                 style: GoogleFonts.montserrat(
-                  fontSize: 17,
+                  fontSize: fs(17),
                   fontWeight: FontWeight.w800,
                   color: CustomersLoginThemeView.textDark,
                 ),
@@ -196,7 +204,7 @@ class _ProductOrderSheetState extends State<_ProductOrderSheet> {
               Text(
                 widget.item.quantity,
                 style: GoogleFonts.montserrat(
-                  fontSize: 14,
+                  fontSize: fs(14),
                   fontWeight: FontWeight.w600,
                   color: CustomersLoginThemeView.primaryBlue,
                 ),
@@ -204,21 +212,21 @@ class _ProductOrderSheetState extends State<_ProductOrderSheet> {
               Text(
                 widget.item.price,
                 style: GoogleFonts.montserrat(
-                  fontSize: 18,
+                  fontSize: fs(18),
                   fontWeight: FontWeight.w800,
                   color: CustomersLoginThemeView.textDark,
                 ),
               ),
               if (widget.showDepositBadge || widget.showRefillBadge) ...[
-                const SizedBox(height: 6),
+                SizedBox(height: scaleF(6)),
                 Wrap(
                   spacing: 6,
                   runSpacing: 4,
                   children: [
                     if (widget.showDepositBadge)
-                      _miniBadge('♻ Glass Return Available'),
+                      _miniBadge('♻ Glass Return Available', fs, scaleF),
                     if (widget.showRefillBadge)
-                      _miniBadge('🥣 Refill Available'),
+                      _miniBadge('🥣 Refill Available', fs, scaleF),
                   ],
                 ),
               ],
@@ -229,9 +237,9 @@ class _ProductOrderSheetState extends State<_ProductOrderSheet> {
     );
   }
 
-  Widget _miniBadge(String text) {
+  Widget _miniBadge(String text, double Function(double) fs, double Function(double) scaleF) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: EdgeInsets.symmetric(horizontal: scaleF(8), vertical: scaleF(3)),
       decoration: BoxDecoration(
         color: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(8),
@@ -242,7 +250,7 @@ class _ProductOrderSheetState extends State<_ProductOrderSheet> {
       child: Text(
         text,
         style: GoogleFonts.montserrat(
-          fontSize: 9,
+          fontSize: fs(9),
           fontWeight: FontWeight.w600,
           color: CustomersLoginThemeView.primaryBlue,
         ),
@@ -250,9 +258,9 @@ class _ProductOrderSheetState extends State<_ProductOrderSheet> {
     );
   }
 
-  Widget _buildContinueBar(double bottomInset) {
+  Widget _buildContinueBar(double bottomInset, double hPadding, double Function(double) scaleF, double Function(double) fs) {
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 12, 20, 12 + bottomInset),
+      padding: EdgeInsets.fromLTRB(hPadding, scaleF(12), hPadding, scaleF(12) + bottomInset),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -265,7 +273,7 @@ class _ProductOrderSheetState extends State<_ProductOrderSheet> {
       ),
       child: SizedBox(
         width: double.infinity,
-        height: 52,
+        height: scaleF(52).clamp(44.0, 56.0),
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
             backgroundColor: CustomersLoginThemeView.primaryBlue,
@@ -278,7 +286,7 @@ class _ProductOrderSheetState extends State<_ProductOrderSheet> {
           onPressed: _onContinue,
           child: Text(
             'Continue',
-            style: CustomersLoginThemeView.buttonTextStyle.copyWith(fontSize: 16),
+            style: CustomersLoginThemeView.buttonTextStyle.copyWith(fontSize: fs(16)),
           ),
         ),
       ),
@@ -310,6 +318,8 @@ class _DeliveryOptionCard extends StatelessWidget {
   final List<String> priceLines;
   final String description;
   final List<String> features;
+  final double Function(double) fs;
+  final double Function(double) scaleF;
 
   const _DeliveryOptionCard({
     required this.selected,
@@ -320,6 +330,8 @@ class _DeliveryOptionCard extends StatelessWidget {
     required this.priceLines,
     required this.description,
     required this.features,
+    required this.fs,
+    required this.scaleF,
   });
 
   @override
@@ -352,12 +364,12 @@ class _DeliveryOptionCard extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(14),
           child: Padding(
-            padding: const EdgeInsets.all(14),
+            padding: EdgeInsets.all(scaleF(14)),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(emoji, style: const TextStyle(fontSize: 28)),
-                const SizedBox(width: 10),
+                Text(emoji, style: TextStyle(fontSize: fs(28))),
+                SizedBox(width: scaleF(10)),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -365,48 +377,48 @@ class _DeliveryOptionCard extends StatelessWidget {
                       Text(
                         title,
                         style: GoogleFonts.montserrat(
-                          fontSize: 15,
+                          fontSize: fs(15),
                           fontWeight: FontWeight.w800,
                           color: CustomersLoginThemeView.textDark,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: scaleF(4)),
                       Text(
                         subtitle,
                         style: GoogleFonts.montserrat(
-                          fontSize: 11,
+                          fontSize: fs(11),
                           color: CustomersLoginThemeView.textGrey,
                           height: 1.25,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: scaleF(8)),
                       ...priceLines.map(
                         (line) => Text(
                           line,
                           style: GoogleFonts.montserrat(
-                            fontSize: 12,
+                            fontSize: fs(12),
                             fontWeight: FontWeight.w600,
                             color: CustomersLoginThemeView.primaryBlue,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: scaleF(8)),
                       Text(
                         description,
                         style: GoogleFonts.montserrat(
-                          fontSize: 11,
+                          fontSize: fs(11),
                           color: CustomersLoginThemeView.textGrey,
                           height: 1.3,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: scaleF(8)),
                       ...features.map(
                         (f) => Padding(
                           padding: const EdgeInsets.only(bottom: 2),
                           child: Text(
                             f,
                             style: GoogleFonts.montserrat(
-                              fontSize: 11,
+                              fontSize: fs(11),
                               fontWeight: FontWeight.w600,
                               color: CustomersLoginThemeView.textDark,
                             ),
@@ -421,7 +433,7 @@ class _DeliveryOptionCard extends StatelessWidget {
                       ? Icons.radio_button_checked
                       : Icons.radio_button_off,
                   color: CustomersLoginThemeView.primaryBlue,
-                  size: 22,
+                  size: scaleF(22),
                 ),
               ],
             ),

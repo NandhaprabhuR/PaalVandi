@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../theme/customers_login_themeview.dart';
+import '../../../core/widgets/responsive_helper.dart';
 import '../../models/home_catalog_data.dart';
 import 'home_product_card.dart';
 
@@ -16,25 +17,30 @@ class HomeProductSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cardHeight = ResponsiveHelper.scaleHeight(context, 184).clamp(170.0, 230.0);
+    final fs = (double size) => ResponsiveHelper.scaledFontSize(context, size);
+    final scaleF = (double val) => ResponsiveHelper.scaledValue(context, val);
+    final hPadding = ResponsiveHelper.horizontalPadding(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          padding: EdgeInsets.fromLTRB(hPadding, scaleF(8), hPadding, scaleF(12)),
           child: Text(
             section.heading,
             style: GoogleFonts.montserrat(
-              fontSize: 18,
+              fontSize: fs(18),
               fontWeight: FontWeight.bold,
               color: CustomersLoginThemeView.sectionHeadingRed,
             ),
           ),
         ),
         SizedBox(
-          height: HomeProductCard.cardHeight,
+          height: cardHeight,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.only(left: 16, right: 4),
+            padding: EdgeInsets.only(left: hPadding, right: 4),
             itemCount: section.products.length,
             itemBuilder: (context, index) {
               return TweenAnimationBuilder<double>(
@@ -60,7 +66,7 @@ class HomeProductSection extends StatelessWidget {
             },
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: scaleF(8)),
       ],
     );
   }

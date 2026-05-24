@@ -33,7 +33,7 @@ class SubscriptionQuote {
     this.advanceRupees = 200,
   }) : balanceOnFullPaymentRupees = monthlyBillRupees - advanceRupees;
 
-  BookedSubscription toBooking() {
+  BookedSubscription toBooking({bool payFull = false}) {
     return BookedSubscription(
       planTitle: planTitle,
       bookedAt: DateTime.now(),
@@ -47,8 +47,9 @@ class SubscriptionQuote {
       monthlyMilkRupees: monthlyMilkRupees,
       deliveryChargeRupees: deliveryChargeRupees,
       monthlyBillRupees: monthlyBillRupees,
-      advanceRupees: advanceRupees,
-      balanceOnFullPaymentRupees: balanceOnFullPaymentRupees,
+      advanceRupees: payFull ? monthlyBillRupees : advanceRupees,
+      balanceOnFullPaymentRupees: payFull ? 0 : balanceOnFullPaymentRupees,
+      isFullyPaid: payFull,
     );
   }
 }

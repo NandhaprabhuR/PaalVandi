@@ -9,6 +9,7 @@ class CustomersProfileModel extends Equatable {
   final String pincode;
   final String referralCode;
   final String fetchedLocation;
+  final String deliveryPreference;
 
   const CustomersProfileModel({
     this.name = '',
@@ -19,6 +20,7 @@ class CustomersProfileModel extends Equatable {
     this.pincode = '',
     this.referralCode = '',
     this.fetchedLocation = '',
+    this.deliveryPreference = 'Deliver Here (Primary)',
   });
 
   CustomersProfileModel copyWith({
@@ -30,6 +32,7 @@ class CustomersProfileModel extends Equatable {
     String? pincode,
     String? referralCode,
     String? fetchedLocation,
+    String? deliveryPreference,
   }) {
     return CustomersProfileModel(
       name: name ?? this.name,
@@ -40,6 +43,7 @@ class CustomersProfileModel extends Equatable {
       pincode: pincode ?? this.pincode,
       referralCode: referralCode ?? this.referralCode,
       fetchedLocation: fetchedLocation ?? this.fetchedLocation,
+      deliveryPreference: deliveryPreference ?? this.deliveryPreference,
     );
   }
 
@@ -53,5 +57,6 @@ class CustomersProfileModel extends Equatable {
         pincode,
         referralCode,
         fetchedLocation,
+        deliveryPreference,
       ];
 }

@@ -65,6 +65,18 @@ class _PaalvandiAppState extends State<PaalvandiApp> {
         if (!snapshot.hasData) {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
+            builder: (context, child) {
+              final mediaQueryData = MediaQuery.of(context);
+              return MediaQuery(
+                data: mediaQueryData.copyWith(
+                  textScaler: mediaQueryData.textScaler.clamp(
+                    minScaleFactor: 0.8,
+                    maxScaleFactor: 1.15,
+                  ),
+                ),
+                child: child!,
+              );
+            },
             home: Scaffold(
               backgroundColor: Colors.white,
               body: Center(
@@ -141,15 +153,50 @@ class _PaalvandiRouterApp extends StatelessWidget {
         BlocProvider(create: (_) => CustomersProfileViewModel(null)),
         BlocProvider(create: (_) => CustomersHomeViewModel(null)..add(LoadHomeData())),
       ],
-      child: MaterialApp.router(
-        title: 'Paalvandi Customers',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          useMaterial3: true,
-          textTheme: GoogleFonts.montserratTextTheme(Theme.of(context).textTheme),
-        ),
-        routerConfig: router,
-        debugShowCheckedModeBanner: false,
+      child: ValueListenableBuilder<ThemeMode>(
+        valueListenable: CustomersLoginThemeView.themeModeNotifier,
+        builder: (context, themeMode, _) {
+          return MaterialApp.router(
+            title: 'Paalvandi Customers',
+            theme: ThemeData(
+              brightness: Brightness.light,
+              scaffoldBackgroundColor: Colors.white,
+              appBarTheme: const AppBarTheme(
+                backgroundColor: Colors.white,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+              ),
+              useMaterial3: true,
+              textTheme: GoogleFonts.montserratTextTheme(Theme.of(context).textTheme),
+            ),
+            darkTheme: ThemeData(
+              brightness: Brightness.dark,
+              scaffoldBackgroundColor: Colors.black,
+              appBarTheme: const AppBarTheme(
+                backgroundColor: Colors.black,
+                elevation: 0,
+                scrolledUnderElevation: 0,
+              ),
+              useMaterial3: true,
+              textTheme: GoogleFonts.montserratTextTheme(Theme.of(context).textTheme),
+            ),
+            themeMode: themeMode,
+            builder: (context, child) {
+              final mediaQueryData = MediaQuery.of(context);
+              return MediaQuery(
+                data: mediaQueryData.copyWith(
+                  textScaler: mediaQueryData.textScaler.clamp(
+                    minScaleFactor: 0.8,
+                    maxScaleFactor: 1.15,
+                  ),
+                ),
+                child: child!,
+              );
+            },
+            routerConfig: router,
+            debugShowCheckedModeBanner: false,
+          );
+        },
       ),
     );
   }

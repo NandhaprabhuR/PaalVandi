@@ -18,7 +18,7 @@ Future<bool?> showPaalvandiConfirmDialog(
       child: Container(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: CustomersLoginThemeView.cardBackgroundColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.25),
