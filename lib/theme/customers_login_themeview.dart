@@ -58,7 +58,7 @@ class CustomersLoginThemeView {
   static TextStyle get brandTitleStyle => GoogleFonts.montserrat(
     fontSize: 28,
     fontWeight: FontWeight.w900,
-    color: primaryBlue,
+    color: const Color(0xFF2E7D32),
     letterSpacing: 2.0,
   );
 
@@ -73,8 +73,8 @@ class CustomersLoginThemeView {
     color: cardBackgroundColor,
     borderRadius: BorderRadius.circular(12),
     border: Border.all(
-      color: primaryBlue.withValues(alpha: 0.25),
-      width: 1.2,
+      color: Colors.black,
+      width: 1,
     ),
     boxShadow: [
       BoxShadow(

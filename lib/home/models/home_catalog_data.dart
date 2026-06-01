@@ -58,11 +58,6 @@ class HomeCatalogData {
       lines: ['Morning 5:00 AM to Night 9:00 PM'],
     ),
     HomePromoCardData(
-      emoji: '🌿',
-      title: 'Healthy Promise',
-      lines: ['No preservatives added'],
-    ),
-    HomePromoCardData(
       emoji: '🏨',
       title: 'Bulk Orders Available',
       lines: ['Hotels and Events supported'],

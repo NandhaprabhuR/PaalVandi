@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import '../../theme/customers_login_themeview.dart';
 class PaymentSuccessView extends StatefulWidget {
   final bool paidOnline;
+  final bool isSubscription;
   final VoidCallback onFinished;
 
   const PaymentSuccessView({
     super.key,
     required this.paidOnline,
+    this.isSubscription = false,
     required this.onFinished,
   });
 
@@ -34,7 +37,7 @@ class _PaymentSuccessViewState extends State<PaymentSuccessView>
       curve: const Interval(0.2, 1, curve: Curves.easeOut),
     );
     _controller.forward();
-    Future<void>.delayed(const Duration(milliseconds: 2200), () {
+    Future<void>.delayed(const Duration(milliseconds: 2500), () {
       if (mounted) widget.onFinished();
     });
   }
@@ -57,30 +60,21 @@ class _PaymentSuccessViewState extends State<PaymentSuccessView>
             children: [
               ScaleTransition(
                 scale: _scale,
-                child: Container(
-                  width: 88,
-                  height: 88,
-                  decoration: BoxDecoration(
-                    color: CustomersLoginThemeView.primaryBlue
-                        .withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: CustomersLoginThemeView.primaryBlue,
-                      width: 2,
-                    ),
-                  ),
-                  child: const Icon(
-                    Icons.check_rounded,
-                    size: 52,
-                    color: CustomersLoginThemeView.primaryBlue,
-                  ),
+                child: Lottie.asset(
+                  'assets/animations/paymentsuccess.json',
+                  width: 160,
+                  height: 160,
+                  fit: BoxFit.contain,
+                  repeat: false,
                 ),
               ),
               const SizedBox(height: 24),
               Text(
                 widget.paidOnline
                     ? 'Payment Successful'
-                    : 'Order Placed Successfully',
+                    : (widget.isSubscription
+                        ? 'Subscription Placed Successfully'
+                        : 'Order Placed Successfully'),
                 style: GoogleFonts.montserrat(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
@@ -90,7 +84,7 @@ class _PaymentSuccessViewState extends State<PaymentSuccessView>
               const SizedBox(height: 8),
               Text(
                 widget.paidOnline
-                    ? 'Order Confirmed'
+                    ? (widget.isSubscription ? 'Subs Confirmed' : 'Order Confirmed')
                     : 'You can pay upon delivery',
                 style: GoogleFonts.montserrat(
                   fontSize: 14,

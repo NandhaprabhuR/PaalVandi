@@ -50,6 +50,179 @@ class _PaymentSelectionBody extends StatelessWidget {
     );
   }
 
+  void _showAddressPickerBottomSheet(BuildContext context) {
+    final scaleF = (double val) => ResponsiveHelper.scaledValue(context, val);
+    final fs = (double size) => ResponsiveHelper.scaledFontSize(context, size);
+
+    // List of added mock addresses
+    final List<Map<String, String>> mockAddedAddresses = [
+      {
+        'label': 'Home',
+        'houseNo': 'Flat 402, Block B',
+        'apartmentName': 'Skyline Apartments',
+        'street': 'Vadavalli, Coimbatore',
+        'deliveryPreference': 'Deliver Here (Primary)',
+      },
+      {
+        'label': 'Office',
+        'houseNo': 'Suite 101, 3rd Floor',
+        'apartmentName': 'Tidel Park',
+        'street': 'Avinashi Road, Coimbatore',
+        'deliveryPreference': 'Deliver Here (Primary)',
+      },
+      {
+        'label': 'Parent\'s House',
+        'houseNo': 'No. 24, Gandhi Street',
+        'apartmentName': '',
+        'street': 'RS Puram, Coimbatore',
+        'deliveryPreference': 'Deliver to Both Places',
+      },
+    ];
+
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.all(scaleF(20)),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Select Primary Address',
+                      style: CustomersLoginThemeView.brandTitleStyle.copyWith(
+                        fontSize: fs(22),
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                SizedBox(height: scaleF(12)),
+                Flexible(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: mockAddedAddresses.length,
+                    itemBuilder: (context, index) {
+                      final addr = mockAddedAddresses[index];
+                      final displayStr = [
+                        if (addr['houseNo']!.isNotEmpty) addr['houseNo']!,
+                        if (addr['apartmentName']!.isNotEmpty) addr['apartmentName']!,
+                        addr['street']!,
+                      ].join(', ');
+
+                      return Card(
+                        margin: EdgeInsets.only(bottom: scaleF(10)),
+                        elevation: 0,
+                        color: Colors.grey.shade50,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: const BorderSide(
+                            color: Colors.black,
+                            width: 1,
+                          ),
+                        ),
+                        child: ListTile(
+                          contentPadding: EdgeInsets.symmetric(horizontal: scaleF(16), vertical: scaleF(4)),
+                          leading: Text(
+                            addr['label'] == 'Home' ? '🏠' : (addr['label'] == 'Office' ? '🏢' : '📍'),
+                            style: const TextStyle(fontSize: 22),
+                          ),
+                          title: Text(
+                            addr['label']!,
+                            style: GoogleFonts.montserrat(
+                              fontSize: fs(14),
+                              fontWeight: FontWeight.bold,
+                              color: CustomersLoginThemeView.textDark,
+                            ),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                displayStr,
+                                style: GoogleFonts.montserrat(
+                                  fontSize: fs(11),
+                                  fontWeight: FontWeight.w500,
+                                  color: CustomersLoginThemeView.textGrey,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Preference: ${addr['deliveryPreference']}',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: fs(10),
+                                  fontWeight: FontWeight.bold,
+                                  color: CustomersLoginThemeView.primaryBlue,
+                                ),
+                              ),
+                            ],
+                          ),
+                          onTap: () {
+                            // Update dynamic state in BLoC globally
+                            context.read<CustomersProfileViewModel>().add(
+                                  ProfileFieldChanged(
+                                    houseNo: addr['houseNo'],
+                                    apartmentName: addr['apartmentName'],
+                                    street: addr['street'],
+                                    deliveryPreference: addr['deliveryPreference'],
+                                  ),
+                                );
+                            Navigator.pop(ctx);
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                SizedBox(height: scaleF(12)),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const AddAddressView(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.add_location_alt_outlined, color: Colors.white, size: 18),
+                  label: Text(
+                    'Add New Address',
+                    style: GoogleFonts.montserrat(
+                      fontSize: fs(14),
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: CustomersLoginThemeView.primaryBlue,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: scaleF(12)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final scaleF = (double val) => ResponsiveHelper.scaledValue(context, val);
@@ -58,21 +231,7 @@ class _PaymentSelectionBody extends StatelessWidget {
 
     return BlocConsumer<PaymentViewModel, PaymentState>(
       listener: (context, state) {
-        if (state is PaymentFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              behavior: SnackBarBehavior.floating,
-              backgroundColor: CustomersLoginThemeView.sectionHeadingRed,
-              content: Text(
-                state.error,
-                style: GoogleFonts.montserrat(
-                  fontWeight: FontWeight.w600,
-                  fontSize: fs(14),
-                ),
-              ),
-            ),
-          );
-        } else if (state is PaymentSuccess) {
+        if (state is PaymentSuccess) {
           final paidOnline =
               state.model.selectedMethod == PaalvandiPaymentMethod.payNowUpi;
           _openSuccessThenTracking(context, paidOnline);
@@ -145,8 +304,8 @@ class _PaymentSelectionBody extends StatelessWidget {
                             color: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(14),
                             border: Border.all(
-                              color: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.15),
-                              width: 1.2,
+                              color: Colors.black,
+                              width: 1,
                             ),
                           ),
                           child: Row(
@@ -189,13 +348,7 @@ class _PaymentSelectionBody extends StatelessWidget {
                                   color: CustomersLoginThemeView.primaryBlue,
                                   size: scaleF(20),
                                 ),
-                                onPressed: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) => const AddAddressView(),
-                                    ),
-                                  );
-                                },
+                                onPressed: () => _showAddressPickerBottomSheet(context),
                               ),
                             ],
                           ),
@@ -266,56 +419,76 @@ class _PaymentSelectionBody extends StatelessWidget {
               ),
               Align(
                 alignment: Alignment.bottomCenter,
-                child: Container(
-                  padding: EdgeInsets.fromLTRB(hPadding, scaleF(10), hPadding, scaleF(12)),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.06),
-                        blurRadius: 10,
-                        offset: const Offset(0, -3),
-                      ),
-                    ],
-                  ),
-                  child: SafeArea(
-                    top: false,
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: scaleF(48).clamp(42.0, 54.0),
-                      child: ElevatedButton(
-                        onPressed: processing
-                            ? null
-                            : () => context
-                                .read<PaymentViewModel>()
-                                .add(const ProcessPayment()),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: CustomersLoginThemeView.primaryBlue,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (state is PaymentFailure)
+                      Container(
+                        width: double.infinity,
+                        color: CustomersLoginThemeView.sectionHeadingRed,
+                        padding: EdgeInsets.symmetric(horizontal: hPadding, vertical: scaleF(8)),
+                        child: Text(
+                          state.error,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.montserrat(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: fs(12),
                           ),
                         ),
-                        child: processing
-                            ? SizedBox(
-                                width: scaleF(22),
-                                height: scaleF(22),
-                                child: const CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : Text(
-                                'Continue',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: fs(15),
-                                  fontWeight: FontWeight.w700,
-                                ),
+                      ),
+                    Container(
+                      padding: EdgeInsets.fromLTRB(hPadding, scaleF(10), hPadding, scaleF(12)),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.06),
+                            blurRadius: 10,
+                            offset: const Offset(0, -3),
+                          ),
+                        ],
+                      ),
+                      child: SafeArea(
+                        top: false,
+                        child: SizedBox(
+                          width: double.infinity,
+                          height: scaleF(48).clamp(42.0, 54.0),
+                          child: ElevatedButton(
+                            onPressed: processing
+                                ? null
+                                : () => context
+                                    .read<PaymentViewModel>()
+                                    .add(const ProcessPayment()),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: CustomersLoginThemeView.primaryBlue,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
+                            ),
+                            child: processing
+                                ? SizedBox(
+                                    width: scaleF(22),
+                                    height: scaleF(22),
+                                    child: const CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : Text(
+                                    'Continue',
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: fs(15),
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
               ),
             ],
@@ -445,10 +618,8 @@ class _PaymentMethodCard extends StatelessWidget {
               : Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: selected
-                ? CustomersLoginThemeView.primaryBlue
-                : CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.25),
-            width: selected ? 2 : 1.2,
+            color: Colors.black,
+            width: selected ? 2.0 : 1.0,
           ),
           boxShadow: selected
               ? [

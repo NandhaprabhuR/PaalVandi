@@ -60,8 +60,15 @@ class CustomersLoginViewModel extends Bloc<CustomersLoginEvent, CustomersLoginSt
 
     on<LoginSendOtpSubmitted>((event, emit) async {
       final phone = state.model.phoneNumber.trim();
-      if (phone.isEmpty) {
+      final cleanedNumber = phone.replaceFirst('+91', '').replaceAll(RegExp(r'\D'), '');
+
+      if (cleanedNumber.isEmpty) {
         emit(LoginFailure(state.model, 'Please enter a valid phone number'));
+        return;
+      }
+
+      if (cleanedNumber.length != 10) {
+        emit(LoginFailure(state.model, 'Phone number must be exactly 10 digits'));
         return;
       }
 

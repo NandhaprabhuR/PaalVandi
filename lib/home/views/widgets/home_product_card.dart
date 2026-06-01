@@ -4,6 +4,7 @@ import '../../../cart/viewmodels/cart_scope.dart';
 import '../../../theme/customers_login_themeview.dart';
 import '../../../core/widgets/responsive_helper.dart';
 import '../../models/home_catalog_data.dart';
+import '../product_details_view.dart';
 
 class HomeProductCard extends StatelessWidget {
   static const double cardRadius = 24;
@@ -45,42 +46,95 @@ class HomeProductCard extends StatelessWidget {
         return SizedBox(
           width: width,
           height: height,
-          child: Container(
-            margin: EdgeInsets.only(right: scaleF(14).clamp(10.0, 18.0)),
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(cardRadius),
-              border: Border.all(
-                color: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.2),
-                width: 1,
+          child: GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) => CartScope(
+                    store: cart,
+                    child: ProductDetailsView(
+                      productName: productName,
+                      initialItem: item,
+                    ),
+                  ),
+                  transitionDuration: const Duration(milliseconds: 350),
+                  reverseTransitionDuration: const Duration(milliseconds: 300),
+                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                    final slideIn = Tween<Offset>(
+                      begin: const Offset(1.0, 0.0),
+                      end: Offset.zero,
+                    ).animate(
+                      CurvedAnimation(
+                        parent: animation,
+                        curve: Curves.fastOutSlowIn,
+                        reverseCurve: Curves.fastOutSlowIn,
+                      ),
+                    );
+
+                    final slideOut = Tween<Offset>(
+                      begin: Offset.zero,
+                      end: const Offset(-0.3, 0.0),
+                    ).animate(
+                      CurvedAnimation(
+                        parent: secondaryAnimation,
+                        curve: Curves.fastOutSlowIn,
+                        reverseCurve: Curves.fastOutSlowIn,
+                      ),
+                    );
+
+                    return SlideTransition(
+                      position: slideIn,
+                      child: SlideTransition(
+                        position: slideOut,
+                        child: child,
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+            child: Container(
+              margin: EdgeInsets.only(right: scaleF(14).clamp(10.0, 18.0)),
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                color: _getCardBgColor(productName),
+                borderRadius: BorderRadius.circular(cardRadius),
+                border: Border.all(
+                  color: Colors.black,
+                  width: 1,
+                ),
               ),
-            ),
-            child: Stack(
-              clipBehavior: Clip.hardEdge,
-              children: [
-                Padding(
-                  // Set bottom padding to scaleF(12) and shift the row up using a SizedBox at the bottom of the Column
-                  padding: EdgeInsets.fromLTRB(scaleF(10), scaleF(8), scaleF(10), scaleF(12)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Center(
-                        child: Container(
-                          width: scaleF(52).clamp(40.0, 60.0),
-                          height: scaleF(52).clamp(40.0, 60.0),
-                          decoration: BoxDecoration(
-                            color: CustomersLoginThemeView.primaryBlue
-                                .withValues(alpha: 0.07),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Icon(
-                            Icons.local_drink_outlined,
-                            size: scaleF(28).clamp(22.0, 34.0),
-                            color: CustomersLoginThemeView.primaryBlue,
+              child: Stack(
+                clipBehavior: Clip.hardEdge,
+                children: [
+                  Padding(
+                    // Set bottom padding to scaleF(12) and shift the row up using a SizedBox at the bottom of the Column
+                    padding: EdgeInsets.fromLTRB(scaleF(10), scaleF(8), scaleF(10), scaleF(12)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Center(
+                          child: Container(
+                            width: scaleF(52).clamp(40.0, 60.0),
+                            height: scaleF(52).clamp(40.0, 60.0),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(14),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.04),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            padding: const EdgeInsets.all(4),
+                            child: Image.asset(
+                              'assets/allbottles.png',
+                              fit: BoxFit.contain,
+                            ),
                           ),
                         ),
-                      ),
                       SizedBox(height: scaleF(4)),
                       Text(
                         productName,
@@ -159,6 +213,7 @@ class HomeProductCard extends StatelessWidget {
               ],
             ),
           ),
+        ),
         );
       },
     );
@@ -230,5 +285,17 @@ class HomeProductCard extends StatelessWidget {
         child: Icon(icon, size: scaleF(16).clamp(12.0, 20.0), color: CustomersLoginThemeView.primaryBlue),
       ),
     );
+  }
+
+  Color _getCardBgColor(String name) {
+    final lowerName = name.toLowerCase();
+    if (lowerName.contains('milk') && !lowerName.contains('butter')) {
+      return const Color(0xFFEEF5FF); // Mild Pastel Blue
+    } else if (lowerName.contains('curd')) {
+      return const Color(0xFFE8F6EC); // Mild Pastel Green
+    } else if (lowerName.contains('butter') || lowerName.contains('moor')) {
+      return const Color(0xFFFFF2E6); // Mild Pastel Peach/Cream
+    }
+    return Colors.white;
   }
 }

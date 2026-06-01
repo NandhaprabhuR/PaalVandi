@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../theme/customers_login_themeview.dart';
+import '../../profile/viewmodels/customers_profile_viewmodel.dart';
 import '../models/cart_models.dart';
 import '../../payment/views/payment_selection_view.dart';
 import '../viewmodels/cart_scope.dart';
@@ -82,6 +84,63 @@ class _DetailedBillViewState extends State<DetailedBillView> {
                 _summaryRow('Delivery charge', cart.deliveryChargeRupeesApplied),
                 const SizedBox(height: 8),
                 _summaryRow('To pay', cart.toPayRupees, bold: true),
+                const Divider(height: 24, thickness: 1),
+                BlocBuilder<CustomersProfileViewModel, CustomersProfileState>(
+                  builder: (context, profileState) {
+                    final model = profileState.model;
+                    String displayAddress = 'Coimbatore (Primary)';
+                    if (model.street.isNotEmpty) {
+                      final parts = [
+                        if (model.houseNo.isNotEmpty) model.houseNo,
+                        if (model.apartmentName.isNotEmpty) model.apartmentName,
+                        model.street,
+                      ];
+                      displayAddress = '${parts.join(', ')} (${model.deliveryPreference})';
+                    }
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Delivery Address',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: CustomersLoginThemeView.textDark,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8F9FA),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.black,
+                              width: 1,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              const Text('📍', style: TextStyle(fontSize: 16)),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  displayAddress,
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: CustomersLoginThemeView.textDark,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ],
             ),
           ),
@@ -160,7 +219,8 @@ class _BillItemTile extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.15),
+          color: Colors.black,
+          width: 1,
         ),
       ),
       child: Row(

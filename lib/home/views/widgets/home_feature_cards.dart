@@ -1,13 +1,120 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import '../../../theme/customers_login_themeview.dart';
 import '../../../core/widgets/responsive_helper.dart';
 import '../../models/home_catalog_data.dart';
 import '../../../subscriptions/viewmodels/subscriptions_scope.dart';
 import '../../../subscriptions/models/booked_subscription_model.dart';
 import '../../../subscriptions/views/delivery_calendar_view.dart';
+import '../bulk_booking_view.dart';
 
+/// Looping micro-animations (float, wiggle, swing, pulse) to make standard emojis feel animated and premium!
+class MicroAnimatedEmoji extends StatefulWidget {
+  final String emoji;
+  final String animationType;
+  final double fontSize;
+
+  const MicroAnimatedEmoji({
+    super.key,
+    required this.emoji,
+    required this.animationType,
+    required this.fontSize,
+  });
+
+  @override
+  State<MicroAnimatedEmoji> createState() => _MicroAnimatedEmojiState();
+}
+
+class _MicroAnimatedEmojiState extends State<MicroAnimatedEmoji> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    )..repeat(reverse: true);
+
+    if (widget.animationType == 'float') {
+      _animation = Tween<double>(begin: -4.0, end: 4.0).animate(
+        CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+      );
+    } else if (widget.animationType == 'pulse') {
+      _animation = Tween<double>(begin: 0.93, end: 1.07).animate(
+        CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+      );
+    } else if (widget.animationType == 'swing') {
+      _animation = Tween<double>(begin: -0.04, end: 0.04).animate(
+        CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+      );
+    } else {
+      // wiggle
+      _animation = Tween<double>(begin: -3.5, end: 3.5).animate(
+        CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.animationType == 'float') {
+      return AnimatedBuilder(
+        animation: _animation,
+        builder: (context, child) {
+          return Transform.translate(
+            offset: Offset(0, _animation.value),
+            child: Text(
+              widget.emoji,
+              style: TextStyle(fontSize: widget.fontSize, height: 1.0),
+            ),
+          );
+        },
+      );
+    } else if (widget.animationType == 'pulse') {
+      return ScaleTransition(
+        scale: _animation,
+        child: Text(
+          widget.emoji,
+          style: TextStyle(fontSize: widget.fontSize, height: 1.0),
+        ),
+      );
+    } else if (widget.animationType == 'swing') {
+      return RotationTransition(
+        turns: _animation,
+        child: Text(
+          widget.emoji,
+          style: TextStyle(fontSize: widget.fontSize, height: 1.0),
+        ),
+      );
+    } else {
+      // wiggle
+      return AnimatedBuilder(
+        animation: _animation,
+        builder: (context, child) {
+          return Transform.translate(
+            offset: Offset(_animation.value, 0),
+            child: Text(
+              widget.emoji,
+              style: TextStyle(fontSize: widget.fontSize, height: 1.0),
+            ),
+          );
+        },
+      );
+    }
+  }
+}
+
+/// Swiggy-style category rounds displaying promotional cards and subscription dues.
+/// Kept as a StatefulWidget to ensure seamless Hot Reload compatibility without state errors.
 class HomeFeatureCards extends StatefulWidget {
   const HomeFeatureCards({super.key});
 
@@ -16,10 +123,308 @@ class HomeFeatureCards extends StatefulWidget {
 }
 
 class _HomeFeatureCardsState extends State<HomeFeatureCards> {
+  static const List<Color> _softTints = [
+    Color(0xFFE8F5E9), // Emerald green tint
+    Color(0xFFF5FAFE), // Soft blue tint
+    Color(0xFFF2FBF6), // Soft mint tint
+    Color(0xFFFFFAF2), // Soft orange/yellow tint
+    Color(0xFFF8F5FC), // Soft purple tint
+    Color(0xFFFFF6F2), // Soft peach tint
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
+  /// Dummy method to prevent runtime Lookup failed exceptions when an active,
+  /// legacy hot-reload timer tries to invoke the old carousel auto-scroll method.
+  void _nextPageForward() {}
+
+  @override
+  Widget build(BuildContext context) {
+    final scaleF = (double val) => ResponsiveHelper.scaledValue(context, val);
+    final fs = (double size) => ResponsiveHelper.scaledFontSize(context, size);
+
+    List<BookedSubscription> bookings = [];
+    try {
+      bookings = SubscriptionsScope.of(context).bookings;
+    } catch (_) {}
+
+    // Build the list of promotional rounds
+    final promoRounds = List.generate(HomeCatalogData.promoCards.length, (index) {
+      final card = HomeCatalogData.promoCards[index];
+      final bgColor = _softTints[index % _softTints.length];
+
+      // Determine clean short title, subtitles, sizes, and fits
+      String shortTitle = card.title;
+      String subtitle = card.lines.isNotEmpty ? card.lines[0] : '';
+      String animAsset = '';
+      double lottieSize = scaleF(58);
+      BoxFit lottieFit = BoxFit.contain;
+      
+      if (card.title.contains('Pure Fresh')) {
+        shortTitle = 'Fresh Milk';
+        subtitle = 'Healthy day';
+        animAsset = 'assets/animations/fresh milk.json';
+        lottieSize = scaleF(110); // make it much bigger to zoom in past transparent/padding margins!
+        lottieFit = BoxFit.cover; // fill circular card completely
+      } else if (card.title.contains('Fast Delivery')) {
+        shortTitle = 'Express';
+        subtitle = '20 Mins';
+        animAsset = 'assets/animations/express.json';
+        lottieSize = scaleF(86); // make it bigger to zoom in on the runner
+        lottieFit = BoxFit.contain;
+      } else if (card.title.contains('Delivery Timing')) {
+        shortTitle = 'Timings';
+        subtitle = '5am - 9pm';
+        animAsset = 'assets/animations/ontime.json';
+        lottieSize = scaleF(62); // slightly larger clock face
+        lottieFit = BoxFit.contain;
+      } else if (card.title.contains('Bulk Orders')) {
+        shortTitle = 'Bulk Booking';
+        subtitle = 'hotels, events';
+        animAsset = 'assets/animations/bulk.json';
+        lottieSize = scaleF(60);
+        lottieFit = BoxFit.contain;
+      }
+
+      final itemWidget = Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          InkWell(
+            onTap: () {
+              if (card.title.contains('Bulk Orders')) {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const BulkBookingView(
+                      initialProduct: 'Fresh Cow Milk',
+                    ),
+                  ),
+                );
+              }
+            },
+            borderRadius: BorderRadius.circular(scaleF(34)),
+            child: Container(
+              width: scaleF(68),
+              height: scaleF(68),
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  width: 1.2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.03),
+                    blurRadius: 6,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              alignment: Alignment.center,
+              child: SizedBox(
+                width: lottieSize,
+                height: lottieSize,
+                child: Lottie.asset(
+                  animAsset,
+                  fit: lottieFit,
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: scaleF(8)),
+          Text(
+            shortTitle,
+            style: GoogleFonts.montserrat(
+              fontSize: fs(10),
+              fontWeight: FontWeight.w800,
+              color: CustomersLoginThemeView.textDark,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          SizedBox(height: scaleF(2)),
+          Text(
+            subtitle,
+            style: GoogleFonts.montserrat(
+              fontSize: fs(8),
+              fontWeight: FontWeight.w600,
+              color: CustomersLoginThemeView.textGrey,
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      );
+
+      if (bookings.isEmpty) {
+        return Expanded(child: itemWidget);
+      } else {
+        return SizedBox(
+          width: scaleF(82),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: scaleF(3)),
+            child: itemWidget,
+          ),
+        );
+      }
+    });
+
+    // If there are no bookings, render the 4 promotional rounds perfectly aligned and sized across the screen width!
+    if (bookings.isEmpty) {
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: scaleF(8)),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: promoRounds,
+        ),
+      );
+    }
+
+    // Build booking widgets if any exist
+    final bookingWidgets = bookings.map((booking) {
+      Color cardBg = const Color(0xFFE8F2FA);
+      Color iconBg = const Color(0xFF1E88E5);
+      final title = booking.planTitle;
+      if (title.contains('Family')) {
+        cardBg = const Color(0xFFE8F2FA);
+        iconBg = const Color(0xFF1E88E5);
+      } else if (title.contains('Business')) {
+        cardBg = const Color(0xFFFFF0E0);
+        iconBg = const Color(0xFFE65100);
+      } else if (title.contains('Event')) {
+        cardBg = const Color(0xFFF0E8F8);
+        iconBg = const Color(0xFF8E24AA);
+      } else if (title.contains('Smart')) {
+        cardBg = const Color(0xFFE6F2EA);
+        iconBg = const Color(0xFF4CAF50);
+      }
+
+      // Short plan name to fit beautifully
+      final shortName = booking.planTitle.replaceAll('Subscription', '').trim();
+
+      return SizedBox(
+        width: scaleF(82),
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: scaleF(3)),
+          child: InkWell(
+            onTap: () {
+              final store = SubscriptionsScope.of(context);
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => SubscriptionsScope(
+                    store: store,
+                    child: DeliveryCalendarView(booking: booking),
+                  ),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(scaleF(34)),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: scaleF(68),
+                  height: scaleF(68),
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                    color: cardBg,
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: iconBg.withValues(alpha: 0.3),
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: iconBg.withValues(alpha: 0.08),
+                        blurRadius: 6,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  alignment: Alignment.center,
+                  child: const MicroAnimatedEmoji(
+                    emoji: '📅',
+                    animationType: 'pulse',
+                    fontSize: 32,
+                  ),
+                ),
+                SizedBox(height: scaleF(8)),
+                Text(
+                  shortName,
+                  style: GoogleFonts.montserrat(
+                    fontSize: fs(10),
+                    fontWeight: FontWeight.w800,
+                    color: CustomersLoginThemeView.textDark,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                SizedBox(height: scaleF(2)),
+                Text(
+                  'Calendar',
+                  style: GoogleFonts.montserrat(
+                    fontSize: fs(8),
+                    fontWeight: FontWeight.w600,
+                    color: iconBg,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+          padding: EdgeInsets.symmetric(horizontal: scaleF(12)),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ...bookingWidgets,
+              ...promoRounds,
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/*
+/// OLD CAROUSEL SLIDER CODE (Preserved for comparison as per instruction)
+class HomeFeatureCardsOld extends StatefulWidget {
+  const HomeFeatureCardsOld({super.key});
+
+  @override
+  State<HomeFeatureCardsOld> createState() => _HomeFeatureCardsOldState();
+}
+
+class _HomeFeatureCardsOldState extends State<HomeFeatureCardsOld> {
   static const double _viewportFraction = 0.88;
 
   static const List<Color> _softTints = [
-    Color(0xFFE8F5E9), // Emerald green tint for tracker card
+    Color(0xFFE8F5E9),
     Color(0xFFF5FAFE),
     Color(0xFFF2FBF6),
     Color(0xFFFFFAF2),
@@ -157,210 +562,4 @@ class _HomeFeatureCardsState extends State<HomeFeatureCards> {
     );
   }
 }
-
-class _DeliveryStatsSlideCard extends StatelessWidget {
-  final BookedSubscription booking;
-  final Color backgroundColor;
-  final Color highlightColor;
-  final Color buttonColor;
-  final bool highlighted;
-
-  const _DeliveryStatsSlideCard({
-    required this.booking,
-    required this.backgroundColor,
-    required this.highlightColor,
-    required this.buttonColor,
-    required this.highlighted,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final scaleF = (double val) => ResponsiveHelper.scaledValue(context, val);
-    final fs = (double size) => ResponsiveHelper.scaledFontSize(context, size);
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 280),
-      curve: Curves.easeOut,
-      width: double.infinity,
-      height: double.infinity,
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: buttonColor.withValues(alpha: 0.2),
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: highlighted ? 0.08 : 0.04),
-            blurRadius: highlighted ? 8 : 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: EdgeInsets.symmetric(horizontal: scaleF(14), vertical: scaleF(10)),
-      child: Row(
-        children: [
-          Text(
-            '📅',
-            style: TextStyle(
-              fontSize: fs(26),
-            ),
-          ),
-          SizedBox(width: scaleF(12)),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  '${booking.planTitle} ',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.montserrat(
-                    fontSize: fs(13.5),
-                    fontWeight: FontWeight.w800,
-                    color: highlightColor,
-                    height: 1.1,
-                  ),
-                ),
-                SizedBox(height: scaleF(3)),
-                Text(
-                  'Delivered: 12 days / 30 days',
-                  style: GoogleFonts.montserrat(
-                    fontSize: fs(11),
-                    fontWeight: FontWeight.w700,
-                    color: CustomersLoginThemeView.textDark,
-                  ),
-                ),
-                Text(
-                  'Next: Tomorrow, 6:30 AM',
-                  style: GoogleFonts.montserrat(
-                    fontSize: fs(10),
-                    fontWeight: FontWeight.w500,
-                    color: CustomersLoginThemeView.textGrey,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          SizedBox(width: scaleF(8)),
-          SizedBox(
-            height: scaleF(32),
-            child: ElevatedButton(
-              onPressed: () {
-                final store = SubscriptionsScope.of(context);
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => SubscriptionsScope(
-                      store: store,
-                      child: DeliveryCalendarView(booking: booking),
-                    ),
-                  ),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: buttonColor,
-                foregroundColor: Colors.white,
-                elevation: 0,
-                padding: EdgeInsets.symmetric(horizontal: scaleF(14)),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(18),
-                ),
-              ),
-              child: Text(
-                'View',
-                style: GoogleFonts.montserrat(
-                  fontSize: fs(12),
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _FeatureSlideCard extends StatelessWidget {
-  final HomePromoCardData data;
-  final Color backgroundColor;
-  final bool highlighted;
-
-  const _FeatureSlideCard({
-    required this.data,
-    required this.backgroundColor,
-    required this.highlighted,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final scaleF = (double val) => ResponsiveHelper.scaledValue(context, val);
-    final fs = (double size) => ResponsiveHelper.scaledFontSize(context, size);
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 280),
-      curve: Curves.easeOut,
-      width: double.infinity,
-      height: double.infinity,
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: highlighted ? 0.1 : 0.05),
-            blurRadius: highlighted ? 8 : 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      padding: EdgeInsets.symmetric(horizontal: scaleF(12), vertical: scaleF(8)),
-      child: Row(
-        children: [
-          Text(
-            data.emoji,
-            style: TextStyle(
-              fontSize: fs(26),
-            ),
-          ),
-          SizedBox(width: scaleF(10)),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  data.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.montserrat(
-                    fontSize: fs(14),
-                    fontWeight: FontWeight.w800,
-                    color: CustomersLoginThemeView.textDark,
-                    height: 1.15,
-                  ),
-                ),
-                SizedBox(height: scaleF(4)),
-                ...data.lines.take(2).map(
-                      (line) => Text(
-                        line,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.montserrat(
-                          fontSize: fs(10),
-                          fontWeight: FontWeight.w500,
-                          color: CustomersLoginThemeView.textGrey,
-                          height: 1.2,
-                        ),
-                      ),
-                    ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+*/

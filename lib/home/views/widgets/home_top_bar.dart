@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../../theme/customers_login_themeview.dart';
 import '../../../core/widgets/responsive_helper.dart';
 import 'home_gpay_loading_line.dart';
 
 class HomeTopBar extends StatelessWidget {
-  const HomeTopBar({super.key});
+  final ValueChanged<String>? onSearchChanged;
+
+  const HomeTopBar({super.key, this.onSearchChanged});
 
   @override
   Widget build(BuildContext context) {
-    final barHeight = ResponsiveHelper.scaleHeight(context, 100).clamp(85.0, 130.0);
+    final barHeight = ResponsiveHelper.scaleHeight(context, 120).clamp(115.0, 145.0);
     final searchOverlap = ResponsiveHelper.scaleHeight(context, 22).clamp(16.0, 26.0);
     final horizontalInset = ResponsiveHelper.horizontalPadding(context, baseValue: 20);
     final searchRadius = ResponsiveHelper.scaleWidth(context, 30).clamp(24.0, 36.0);
@@ -30,17 +33,23 @@ class HomeTopBar extends StatelessWidget {
       ),
     );
 
-    return SizedBox(
-      height: barHeight + searchOverlap,
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Container(
-            height: barHeight,
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light.copyWith(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
+      ),
+      child: SizedBox(
+        height: barHeight + searchOverlap,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Container(
+              height: barHeight,
             width: double.infinity,
             decoration: BoxDecoration(
               color: CustomersLoginThemeView.cardBackgroundColor,
-              borderRadius: BorderRadius.only(
+              borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(28),
                 bottomRight: Radius.circular(28),
               ),
@@ -51,37 +60,69 @@ class HomeTopBar extends StatelessWidget {
                 ),
               ),
             ),
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: EdgeInsets.fromLTRB(16, 0, 16, barHeight * 0.3),
-                child: Center(
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'PaalVandi',
-                          style:
-                              CustomersLoginThemeView.brandTitleStyle.copyWith(
-                            fontSize: fs(22),
-                            height: 1.0,
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(28),
+                bottomRight: Radius.circular(28),
+              ),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.asset(
+                    'assets/topbar/hometopbar.png',
+                    fit: BoxFit.cover,
+                  ),
+                  SafeArea(
+                    bottom: false,
+                    child: Padding(
+                      padding: EdgeInsets.fromLTRB(16, 0, 16, barHeight * 0.3),
+                      child: const Center(
+                        child: SizedBox(), // Brand name capsule commented out below (uncomment if needed later)
+                        /*
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.85),
+                              borderRadius: BorderRadius.circular(18),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'PaalVandi',
+                                  style: CustomersLoginThemeView.brandTitleStyle.copyWith(
+                                    fontSize: fs(22),
+                                    height: 1.0,
+                                    color: CustomersLoginThemeView.primaryBlue,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'FRESH MILK, EVERY DAY',
+                                  style: CustomersLoginThemeView.brandTaglineStyle.copyWith(
+                                    fontSize: fs(10),
+                                    height: 1.0,
+                                    color: CustomersLoginThemeView.primaryBlue,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'FRESH MILK, EVERY DAY',
-                          style: CustomersLoginThemeView.brandTaglineStyle
-                              .copyWith(
-                            fontSize: fs(10),
-                            height: 1.0,
-                          ),
-                        ),
-                      ],
+                        */
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
           ),
@@ -97,6 +138,7 @@ class HomeTopBar extends StatelessWidget {
               child: Stack(
                 children: [
                   TextField(
+                    onChanged: onSearchChanged,
                     decoration: InputDecoration(
                       hintText: 'Search for products...',
                       hintStyle: CustomersLoginThemeView.hintStyle.copyWith(
@@ -138,6 +180,7 @@ class HomeTopBar extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }

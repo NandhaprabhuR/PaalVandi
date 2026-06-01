@@ -21,16 +21,28 @@ class UpiPaymentService {
     required UpiAppOption app,
     required int amountRupees,
   }) async {
-    final uri = Uri.parse(upiUriForApp(app, amountRupees));
-    if (await canLaunchUrl(uri)) {
-      return launchUrl(uri, mode: LaunchMode.externalApplication);
+    try {
+      final uri = Uri.parse(upiUriForApp(app, amountRupees));
+      final bool canLaunchApp = await canLaunchUrl(uri);
+      if (canLaunchApp) {
+        return await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (_) {
+      // Graceful fallback for simulator/emulator environments
     }
-    final generic = Uri.parse(
-      'upi://pay?pa=$_merchantVpa&pn=${Uri.encodeComponent(_merchantName)}&am=${amountRupees.toStringAsFixed(2)}&cu=INR',
-    );
-    if (await canLaunchUrl(generic)) {
-      return launchUrl(generic, mode: LaunchMode.externalApplication);
+
+    try {
+      final generic = Uri.parse(
+        'upi://pay?pa=$_merchantVpa&pn=${Uri.encodeComponent(_merchantName)}&am=${amountRupees.toStringAsFixed(2)}&cu=INR',
+      );
+      final bool canLaunchGeneric = await canLaunchUrl(generic);
+      if (canLaunchGeneric) {
+        return await launchUrl(generic, mode: LaunchMode.externalApplication);
+      }
+    } catch (_) {
+      // Graceful fallback for simulator/emulator environments
     }
+
     return false;
   }
 }

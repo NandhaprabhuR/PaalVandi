@@ -110,15 +110,55 @@ class CustomersProfileViewModel extends Bloc<CustomersProfileEvent, CustomersPro
 
     on<ProfileSubmit>((event, emit) async {
       final name = state.model.name.trim();
+      final houseNo = state.model.houseNo.trim();
+      final apartmentName = state.model.apartmentName.trim();
       final street = state.model.street.trim();
+      final pincode = state.model.pincode.trim();
+      final referralCode = state.model.referralCode.trim();
       
+      // 1. Mandatory Fields Validation (everything except referral code is mandatory)
       if (name.isEmpty) {
-        emit(ProfileFailure(state.model, 'Please enter your name'));
+        emit(ProfileFailure(state.model, 'Please enter your Full Name'));
+        return;
+      }
+      if (houseNo.isEmpty) {
+        emit(ProfileFailure(state.model, 'Please enter your House / Flat No'));
+        return;
+      }
+      if (apartmentName.isEmpty) {
+        emit(ProfileFailure(state.model, 'Please enter your Apartment / Building Name'));
         return;
       }
       if (street.isEmpty) {
-        emit(ProfileFailure(state.model, 'Please enter your address details'));
+        emit(ProfileFailure(state.model, 'Please enter your Street / Area'));
         return;
+      }
+      if (pincode.isEmpty) {
+        emit(ProfileFailure(state.model, 'Please enter your Pincode'));
+        return;
+      }
+
+      // 2. Name validation: text only (alphabets and spaces only)
+      final nameRegex = RegExp(r'^[a-zA-Z\s]+$');
+      if (!nameRegex.hasMatch(name)) {
+        emit(ProfileFailure(state.model, 'Full Name must contain letters only'));
+        return;
+      }
+
+      // 3. Pincode validation: only number with exactly 6 digits
+      final pincodeRegex = RegExp(r'^\d{6}$');
+      if (!pincodeRegex.hasMatch(pincode)) {
+        emit(ProfileFailure(state.model, 'Pincode must be exactly 6 digits'));
+        return;
+      }
+
+      // 4. Referral Code validation: exactly 7 alphanumeric characters (optional)
+      if (referralCode.isNotEmpty) {
+        final refRegex = RegExp(r'^[a-zA-Z0-9]{7}$');
+        if (!refRegex.hasMatch(referralCode)) {
+          emit(ProfileFailure(state.model, 'Referral Code must be exactly 7 alphanumeric characters'));
+          return;
+        }
       }
 
       emit(ProfileLoading(state.model));

@@ -12,8 +12,8 @@ import '../viewmodels/subscriptions_booking_store.dart';
 import '../viewmodels/subscriptions_scope.dart';
 import 'subscription_payment_selection_view.dart';
 import '../../core/widgets/paalvandi_confirm_dialog.dart';
-import 'cancel_subscription_view.dart';
 import 'modify_subscription_view.dart';
+import 'cancel_subscription_view.dart';
 import 'delivery_calendar_view.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../profile/viewmodels/customers_profile_viewmodel.dart';
@@ -26,6 +26,14 @@ class YourSubscriptionsView extends StatelessWidget {
       if (p.title == title) return p;
     }
     return null;
+  }
+
+  Color _accentColorFor(String title) {
+    if (title.contains('Family')) return const Color(0xFF1976D2); // Elegant Blue
+    if (title.contains('Business')) return const Color(0xFFF57C00); // Premium Orange
+    if (title.contains('Event')) return const Color(0xFF8E24AA); // Royal Purple
+    if (title.contains('Smart')) return const Color(0xFF4CAF50); // Vibrant Green
+    return const Color(0xFF1976D2);
   }
 
   Future<void> _downloadReceipt(BuildContext context, BookedSubscription booking) async {
@@ -321,6 +329,28 @@ class YourSubscriptionsView extends StatelessWidget {
               ),
             ),
             centerTitle: true,
+            actions: [
+              if (bookings.isNotEmpty)
+                IconButton(
+                  icon: Icon(
+                    Icons.calendar_month_rounded,
+                    color: _accentColorFor(bookings.first.planTitle),
+                    size: 26,
+                  ),
+                  tooltip: 'View Delivery Timeline',
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => SubscriptionsScope(
+                          store: store,
+                          child: DeliveryCalendarView(booking: bookings.first),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              const SizedBox(width: 8),
+            ],
           ),
           body: bookings.isEmpty
               ? Center(
@@ -349,8 +379,8 @@ class YourSubscriptionsView extends StatelessWidget {
                         color: tint,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: CustomersLoginThemeView.primaryBlue
-                              .withValues(alpha: 0.22),
+                          color: Colors.black,
+                          width: 1,
                         ),
                       ),
                       child: Column(
@@ -376,25 +406,6 @@ class YourSubscriptionsView extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              // Timeline Navigation Icon Button next to Heading
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.calendar_month_rounded,
-                                  color: Color(0xFF4CAF50),
-                                  size: 24,
-                                ),
-                                tooltip: 'View Delivery Timeline',
-                                onPressed: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) => SubscriptionsScope(
-                                        store: store,
-                                        child: DeliveryCalendarView(booking: booking),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
                               // Receipt Download Button next to Heading
                               IconButton(
                                 icon: const Icon(
@@ -406,6 +417,15 @@ class YourSubscriptionsView extends StatelessWidget {
                                 onPressed: () => _downloadReceipt(context, booking),
                               ),
                             ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Subscription ID: S8Y2K',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: CustomersLoginThemeView.primaryBlue,
+                            ),
                           ),
                           const SizedBox(height: 4),
                           // Green Active Badge & Date Row

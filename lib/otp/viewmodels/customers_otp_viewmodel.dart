@@ -65,8 +65,9 @@ class CustomersOtpViewModel extends Bloc<CustomersOtpEvent, CustomersOtpState> {
 
     on<OtpVerifySubmitted>((event, emit) async {
       final otp = state.model.otpCode.trim();
-      if (otp.length != 6) {
-        emit(OtpFailure(state.model, 'Please enter a valid 6-digit OTP'));
+      final digits = otp.replaceAll(RegExp(r'\D'), '');
+      if (digits.length != 6) {
+        emit(OtpFailure(state.model, 'Please enter a valid 6-digit numeric OTP'));
         return;
       }
 

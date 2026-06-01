@@ -10,6 +10,7 @@ class OrderHistoryEntry {
   final List<OrderProductDisplay> products;
   final List<String> footerLines;
   final bool isCancelled;
+  final String? cancellationId;
 
   const OrderHistoryEntry({
     required this.id,
@@ -19,6 +20,7 @@ class OrderHistoryEntry {
     this.products = const [],
     this.footerLines = const [],
     this.isCancelled = false,
+    this.cancellationId,
   });
 
   List<OrderProductDisplay> get displayProducts => products.isNotEmpty
@@ -72,7 +74,7 @@ class OrderHistoryData {
     final now = DateTime.now();
     return [
       OrderHistoryEntry(
-        id: 'PV-2401',
+        id: 'F8K2L',
         orderedAt: now.subtract(const Duration(days: 1)),
         totalRupees: 80,
         products: const [
@@ -84,7 +86,7 @@ class OrderHistoryData {
         footerLines: const [],
       ),
       OrderHistoryEntry(
-        id: 'PV-2398',
+        id: 'B4P9X',
         orderedAt: now.subtract(const Duration(days: 3)),
         totalRupees: 143,
         products: const [
@@ -96,7 +98,7 @@ class OrderHistoryData {
         footerLines: const [],
       ),
       OrderHistoryEntry(
-        id: 'PV-2390',
+        id: 'M7Q3Y',
         orderedAt: now.subtract(const Duration(days: 7)),
         totalRupees: 65,
         products: const [

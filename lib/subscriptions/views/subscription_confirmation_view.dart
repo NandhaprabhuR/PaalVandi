@@ -494,7 +494,8 @@ class SubscriptionConfirmationView extends StatelessWidget {
         color: Colors.white.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.2),
+          color: Colors.black,
+          width: 1,
         ),
       ),
       child: child,
@@ -552,7 +553,10 @@ class SubscriptionConfirmationView extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.35)),
+        border: Border.all(
+          color: Colors.black,
+          width: 1,
+        ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

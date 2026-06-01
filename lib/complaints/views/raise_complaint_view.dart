@@ -293,7 +293,7 @@ class _RaiseComplaintViewState extends State<RaiseComplaintView>
             children: [
               // 1. Raise Complaint Tab
               SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                 padding: EdgeInsets.fromLTRB(hPadding, scaleF(16), hPadding, scaleF(24)),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -608,7 +608,7 @@ class _RaiseComplaintViewState extends State<RaiseComplaintView>
     }
 
     return ListView.separated(
-      physics: const BouncingScrollPhysics(),
+      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
       padding: EdgeInsets.fromLTRB(hPadding, scaleF(16), hPadding, scaleF(24)),
       itemCount: list.length,
       separatorBuilder: (_, __) => SizedBox(height: scaleF(12)),

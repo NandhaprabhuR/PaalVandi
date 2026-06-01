@@ -47,6 +47,7 @@ class OrderHistoryView extends StatelessWidget {
             );
           }
           return ListView.separated(
+            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
             itemCount: orders.length,
             separatorBuilder: (_, __) => const SizedBox(height: 12),
@@ -94,7 +95,6 @@ class _OrderHistoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dateStr = DateFormat('dd MMM yyyy · hh:mm a').format(order.orderedAt);
-    final canTrack = cart.canTrackOrder(order.id);
     final isCancelled = order.isCancelled ||
         order.summaryLines.contains('Order cancelled');
     final products = order.displayProducts;
@@ -107,7 +107,8 @@ class _OrderHistoryCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.2),
+          color: Colors.black,
+          width: 1,
         ),
       ),
       child: Column(
@@ -117,13 +118,29 @@ class _OrderHistoryCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Text(
-                  'Order ${order.id}',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: CustomersLoginThemeView.textDark,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Order ID: ${order.id}',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: CustomersLoginThemeView.textDark,
+                      ),
+                    ),
+                    if (isCancelled && order.cancellationId != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        'Cancellation ID: ${order.cancellationId}',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: CustomersLoginThemeView.sectionHeadingRed,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
               Text(
@@ -153,7 +170,7 @@ class _OrderHistoryCard extends StatelessWidget {
             statusLine: isCancelled ? 'Order cancelled' : null,
             statusIsError: true,
           ),
-          if (footers.isNotEmpty || (canTrack && !isCancelled && otp != null)) ...[
+          if (footers.isNotEmpty || (!isCancelled && otp != null)) ...[
             const SizedBox(height: 8),
             Divider(
               height: 1,
@@ -182,7 +199,7 @@ class _OrderHistoryCard extends StatelessWidget {
                         .toList(),
                   ),
                 ),
-                if (canTrack && !isCancelled && otp != null)
+                if (!isCancelled && otp != null)
                   OrderDeliveryOtpCompact(otp: otp),
               ],
             ),
@@ -212,7 +229,7 @@ class _OrderHistoryCard extends StatelessWidget {
                 ),
               ),
             ),
-          ] else if (canTrack) ...[
+          ] else ...[
             const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,

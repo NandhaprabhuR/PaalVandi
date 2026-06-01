@@ -151,8 +151,10 @@ Future<void> showSubscriptionCallDialog(BuildContext context) {
                   child: ElevatedButton.icon(
                     onPressed: () async {
                       final uri = Uri.parse('tel:$kSubscriptionSupportPhone');
-                      if (await canLaunchUrl(uri)) {
+                      try {
                         await launchUrl(uri);
+                      } catch (_) {
+                        // Safely ignore failure if dialer can't open on desktop emulator
                       }
                       if (ctx.mounted) Navigator.pop(ctx);
                     },

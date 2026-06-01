@@ -6,6 +6,7 @@ class BottleHistoryEntry {
   final String action; // Delivered, Returned, Deposit paid
   final int depositRupees;
   final int? refundRupees;
+  final String? walletId;
 
   const BottleHistoryEntry({
     required this.orderId,
@@ -15,6 +16,7 @@ class BottleHistoryEntry {
     required this.action,
     required this.depositRupees,
     this.refundRupees,
+    this.walletId,
   });
 }
 
@@ -23,37 +25,41 @@ class BottleHistoryData {
     final now = DateTime.now();
     return [
       BottleHistoryEntry(
-        orderId: 'PV-2401',
+        orderId: 'F8K2L',
         date: now.subtract(const Duration(hours: 5)),
         productName: 'Fresh Curd',
         quantity: '500g',
         action: 'Deposit paid',
         depositRupees: 20,
+        walletId: 'W3M8P',
       ),
       BottleHistoryEntry(
-        orderId: 'PV-2398',
+        orderId: 'B4P9X',
         date: now.subtract(const Duration(days: 2)),
         productName: 'Fresh Cow Milk',
         quantity: '1L',
         action: 'Bottle delivered',
         depositRupees: 20,
+        walletId: 'W9J4K',
       ),
       BottleHistoryEntry(
-        orderId: 'PV-2395',
+        orderId: 'H5T7N',
         date: now.subtract(const Duration(days: 4)),
         productName: 'Fresh Cow Milk',
         quantity: '500ml',
         action: 'Bottle returned',
         depositRupees: 20,
         refundRupees: 20,
+        walletId: 'W2C7X',
       ),
       BottleHistoryEntry(
-        orderId: 'PV-2390',
+        orderId: 'M7Q3Y',
         date: now.subtract(const Duration(days: 7)),
         productName: 'Fresh Curd',
         quantity: '1kg',
         action: 'Bottle delivered',
         depositRupees: 20,
+        walletId: 'W6L5V',
       ),
     ];
   }

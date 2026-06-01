@@ -83,9 +83,6 @@ class _FamilySubscriptionPageState extends State<_FamilySubscriptionPage> {
   int _qtyIndex = 1;
   int _timingIndex = 0;
   final _customController = TextEditingController();
-  bool _pauseAnytime = true;
-  bool _vacationMode = false;
-  bool _extraMilk = false;
 
   @override
   void dispose() {
@@ -94,17 +91,25 @@ class _FamilySubscriptionPageState extends State<_FamilySubscriptionPage> {
   }
 
   void _continue() {
+    if (_qtyIndex == _quantities.length - 1 && _customController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Please enter a custom quantity.',
+            style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+          ),
+          backgroundColor: CustomersLoginThemeView.sectionHeadingRed,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     final qty = _qtyIndex == _quantities.length - 1
-        ? (_customController.text.trim().isEmpty
-            ? 'Custom'
-            : _customController.text.trim())
+        ? _customController.text.trim()
         : _quantities[_qtyIndex];
     const timings = ['Morning (5AM–9AM)', 'Evening (4PM–9PM)', 'Both'];
-    final options = <String>[
-      if (_pauseAnytime) 'Pause anytime',
-      if (_vacationMode) 'Vacation mode',
-      if (_extraMilk) 'Extra milk for one day',
-    ];
+    const options = <String>[];
     openSubscriptionConfirmation(
       context,
       SubscriptionPricing.family(
@@ -163,22 +168,6 @@ class _FamilySubscriptionPageState extends State<_FamilySubscriptionPage> {
             selected: _timingIndex == 2,
             onTap: () => setState(() => _timingIndex = 2),
           ),
-          const SubscriptionSectionTitle('Additional Options:'),
-          SubscriptionCheckTile(
-            label: 'Pause anytime',
-            value: _pauseAnytime,
-            onChanged: (v) => setState(() => _pauseAnytime = v),
-          ),
-          SubscriptionCheckTile(
-            label: 'Vacation mode',
-            value: _vacationMode,
-            onChanged: (v) => setState(() => _vacationMode = v),
-          ),
-          SubscriptionCheckTile(
-            label: 'Add extra milk for one day',
-            value: _extraMilk,
-            onChanged: (v) => setState(() => _extraMilk = v),
-          ),
         ],
       ),
     );
@@ -206,7 +195,6 @@ class _BusinessSubscriptionPageState
   ];
 
   int _qtyIndex = 0;
-  int _frequencyIndex = 0;
   int _timingIndex = 0;
   String _businessType = 'Hotel';
   final _customController = TextEditingController();
@@ -218,18 +206,29 @@ class _BusinessSubscriptionPageState
   }
 
   void _continue() {
+    if (_qtyIndex == _quantities.length - 1 && _customController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Please enter a custom quantity.',
+            style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+          ),
+          backgroundColor: CustomersLoginThemeView.sectionHeadingRed,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     final qty = _qtyIndex == _quantities.length - 1
-        ? (_customController.text.trim().isEmpty
-            ? 'Custom'
-            : _customController.text.trim())
+        ? _customController.text.trim()
         : _quantities[_qtyIndex];
-    const frequencies = ['Once Daily', 'Twice Daily'];
     const timings = ['Morning', 'Evening', 'Morning + Evening'];
     openSubscriptionConfirmation(
       context,
       SubscriptionPricing.business(
         quantity: qty,
-        frequency: frequencies[_frequencyIndex],
+        frequency: 'Once Daily',
         timing: timings[_timingIndex],
         businessType: _businessType,
       ),
@@ -267,17 +266,6 @@ class _BusinessSubscriptionPageState
                 ? CrossFadeState.showSecond
                 : CrossFadeState.showFirst,
             duration: const Duration(milliseconds: 220),
-          ),
-          const SubscriptionSectionTitle('Delivery Frequency:'),
-          SubscriptionRadioTile(
-            label: 'Once Daily',
-            selected: _frequencyIndex == 0,
-            onTap: () => setState(() => _frequencyIndex = 0),
-          ),
-          SubscriptionRadioTile(
-            label: 'Twice Daily',
-            selected: _frequencyIndex == 1,
-            onTap: () => setState(() => _frequencyIndex = 1),
           ),
           const SubscriptionSectionTitle('Delivery Timing:'),
           SubscriptionRadioTile(

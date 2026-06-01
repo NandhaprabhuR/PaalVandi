@@ -13,6 +13,7 @@ class TrackedOrder {
   final List<OrderProductDisplay> products;
   final String deliveryOtp;
   final OrderTrackStatus status;
+  final String? cancellationId;
 
   const TrackedOrder({
     required this.orderId,
@@ -24,6 +25,7 @@ class TrackedOrder {
     required this.products,
     required this.deliveryOtp,
     this.status = OrderTrackStatus.inProgress,
+    this.cancellationId,
   });
 
   bool get paidOnline => paymentMethod == PaalvandiPaymentMethod.payNowUpi;
@@ -39,7 +41,7 @@ class TrackedOrder {
         PaalvandiPaymentMethod.none => 'Pending',
       };
 
-  TrackedOrder copyWith({OrderTrackStatus? status}) {
+  TrackedOrder copyWith({OrderTrackStatus? status, String? cancellationId}) {
     return TrackedOrder(
       orderId: orderId,
       placedAt: placedAt,
@@ -50,6 +52,7 @@ class TrackedOrder {
       products: products,
       deliveryOtp: deliveryOtp,
       status: status ?? this.status,
+      cancellationId: cancellationId ?? this.cancellationId,
     );
   }
 }

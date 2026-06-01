@@ -5,6 +5,7 @@ import '../../core/widgets/responsive_helper.dart';
 import '../models/subscription_quote_model.dart';
 import '../models/booked_subscription_model.dart';
 import '../viewmodels/subscriptions_scope.dart';
+import '../../payment/views/payment_success_view.dart';
 
 class SubscriptionPaymentSelectionView extends StatefulWidget {
   final SubscriptionQuote quote;
@@ -43,7 +44,7 @@ class _SubscriptionPaymentSelectionViewState
     setState(() => _isProcessing = true);
     
     // Premium loading simulation
-    await Future.delayed(const Duration(milliseconds: 1500));
+    await Future.delayed(const Duration(milliseconds: 1200));
     
     if (!mounted) return;
     
@@ -55,37 +56,36 @@ class _SubscriptionPaymentSelectionViewState
       } else {
         SubscriptionsScope.of(context).markBookingAsPaid(widget.targetBooking!);
       }
-      Navigator.of(context).pop(); // Pops payment screen
-      if (widget.cancellingAtMonthEnd) {
-        Navigator.of(context).pop(); // Pops YourSubscriptionsView as well
-      }
     } else {
       // Register the booked subscription with dynamic amount calculation
       SubscriptionsScope.of(context).addBooking(
         widget.quote.toBooking(payFull: _payFullAmount),
       );
-      Navigator.of(context).pop(); // Pops payment screen
-      Navigator.of(context).pop(); // Pops configuration confirm screen
     }
     
-    // Show premium confirmation SnackBar
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: widget.cancellingAtMonthEnd
-            ? CustomersLoginThemeView.sectionHeadingRed
-            : CustomersLoginThemeView.primaryBlue,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        content: Text(
-          widget.cancellingAtMonthEnd
-              ? 'Dues settled successfully. Subscription cancelled at month end.'
-              : (isPayingBalance
-                  ? 'Balance for ${widget.quote.planTitle} Paid Successfully!'
-                  : '${widget.quote.planTitle} Confirmed Successfully!'),
-          style: GoogleFonts.montserrat(
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
+    if (!mounted) return;
+
+    // Show the premium full-screen checkmark/animation success screen!
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (successCtx) => PaymentSuccessView(
+          paidOnline: true,
+          isSubscription: true,
+          onFinished: () {
+            // Pop success screen
+            Navigator.of(successCtx).pop();
+
+            // Perform the pops underneath
+            if (isPayingBalance) {
+              Navigator.of(context).pop(); // Pops payment screen
+              if (widget.cancellingAtMonthEnd) {
+                Navigator.of(context).pop(); // Pops YourSubscriptionsView
+              }
+            } else {
+              Navigator.of(context).pop(); // Pops payment screen
+              Navigator.of(context).pop(); // Pops configuration confirm screen
+            }
+          },
         ),
       ),
     );
@@ -158,7 +158,8 @@ class _SubscriptionPaymentSelectionViewState
                           color: CustomersLoginThemeView.sectionHeadingRed.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: CustomersLoginThemeView.sectionHeadingRed.withValues(alpha: 0.2),
+                            color: Colors.black,
+                            width: 1,
                           ),
                         ),
                         child: Column(
@@ -361,10 +362,8 @@ class _SubscriptionPaymentSelectionViewState
             : CustomersLoginThemeView.cardBackgroundColor,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: selected
-              ? CustomersLoginThemeView.primaryBlue
-              : CustomersLoginThemeView.borderColor,
-          width: selected ? 2 : 1.2,
+          color: Colors.black,
+          width: selected ? 2.0 : 1.0,
         ),
       ),
       child: InkWell(

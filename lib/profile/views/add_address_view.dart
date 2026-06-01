@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../theme/customers_login_themeview.dart';
@@ -66,11 +67,68 @@ class _AddAddressViewState extends State<AddAddressView> {
     final street = _streetController.text.trim();
     final pin = _pincodeController.text.trim();
 
+    if (house.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'House No. / Flat / Villa is required.',
+            style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+          ),
+          backgroundColor: CustomersLoginThemeView.sectionHeadingRed,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    if (apt.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Apartment / Society Name / Landmark is required.',
+            style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+          ),
+          backgroundColor: CustomersLoginThemeView.sectionHeadingRed,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
     if (street.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Street name is required.',
+            'Street Name / Area Name is required.',
+            style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+          ),
+          backgroundColor: CustomersLoginThemeView.sectionHeadingRed,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    if (pin.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Pincode is required.',
+            style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+          ),
+          backgroundColor: CustomersLoginThemeView.sectionHeadingRed,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    final pincodeRegex = RegExp(r'^\d{6}$');
+    if (!pincodeRegex.hasMatch(pin)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Pincode must be exactly 6 digits.',
             style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
           ),
           backgroundColor: CustomersLoginThemeView.sectionHeadingRed,
@@ -135,7 +193,7 @@ class _AddAddressViewState extends State<AddAddressView> {
         centerTitle: true,
       ),
       body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         padding: EdgeInsets.fromLTRB(hPadding, scaleF(16), hPadding, scaleF(32)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -272,11 +330,15 @@ class _AddAddressViewState extends State<AddAddressView> {
 
              _buildInputField(
               controller: _pincodeController,
-              label: 'Pincode',
+              label: 'Pincode *',
               hint: 'e.g. 641041',
               scaleF: scaleF,
               fs: fs,
               keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(6),
+              ],
             ),
             SizedBox(height: scaleF(20)),
 
@@ -424,6 +486,7 @@ class _AddAddressViewState extends State<AddAddressView> {
     required double Function(double) scaleF,
     required double Function(double) fs,
     TextInputType keyboardType = TextInputType.text,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -450,6 +513,7 @@ class _AddAddressViewState extends State<AddAddressView> {
           child: TextField(
             controller: controller,
             keyboardType: keyboardType,
+            inputFormatters: inputFormatters,
             style: GoogleFonts.montserrat(
               fontSize: fs(14),
               color: CustomersLoginThemeView.textDark,

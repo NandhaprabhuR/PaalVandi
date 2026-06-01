@@ -32,7 +32,7 @@ class _OrderTrackingViewState extends State<OrderTrackingView> {
   @override
   void initState() {
     super.initState();
-    Future<void>.delayed(const Duration(seconds: 2), () {
+    Future<void>.delayed(const Duration(minutes: 6), () {
       if (!mounted) return;
       final cart = CartScope.of(context);
       final order = cart.trackedOrderFor(widget.orderId);

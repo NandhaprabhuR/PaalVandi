@@ -7,6 +7,8 @@ import '../models/bottle_history_model.dart';
 import '../models/cart_models.dart';
 import '../models/order_display_models.dart';
 import '../models/order_history_model.dart';
+import '../models/product_review.dart';
+import '../../core/app_id_generator.dart';
 
 class CartViewModel extends ChangeNotifier {
   static const int deliveryChargeRupees = 15;
@@ -20,11 +22,69 @@ class CartViewModel extends ChangeNotifier {
   final List<BottleHistoryEntry> placedBottleHistory = [];
   final Set<String> bottleReturnRequestedOrderIds = {};
 
+  final List<ProductReview> productReviews = [
+    ProductReview(
+      userName: 'Aanya',
+      userEmoji: '👩‍🦰',
+      rating: 5,
+      comment: 'Super fresh milk delivered early morning! The quality is amazing.',
+      date: DateTime.now().subtract(const Duration(days: 1)),
+    ),
+    ProductReview(
+      userName: 'Rahul',
+      userEmoji: '🧔',
+      rating: 4,
+      comment: 'Very thick and pure. No water mixed at all. Recommended!',
+      date: DateTime.now().subtract(const Duration(days: 2)),
+    ),
+    ProductReview(
+      userName: 'Karthik',
+      userEmoji: '👳',
+      rating: 5,
+      comment: 'Outstanding delivery service. Best organic milk in town.',
+      date: DateTime.now().subtract(const Duration(days: 3)),
+    ),
+    ProductReview(
+      userName: 'Pooja',
+      userEmoji: '👱‍♀️',
+      rating: 4,
+      comment: 'Extremely fresh and healthy. Reminds me of farm-fresh milk.',
+      date: DateTime.now().subtract(const Duration(days: 4)),
+    ),
+  ];
+
+  void addProductReview(ProductReview review) {
+    productReviews.insert(0, review);
+    notifyListeners();
+  }
+
   static String deliveryOtpForOrderId(String orderId) {
     return (orderId.hashCode.abs() % 10000).toString().padLeft(4, '0');
   }
 
-  TrackedOrder? trackedOrderFor(String orderId) => trackedOrders[orderId];
+  TrackedOrder? trackedOrderFor(String orderId) {
+    if (trackedOrders.containsKey(orderId)) {
+      return trackedOrders[orderId];
+    }
+    final index = allOrderHistory.indexWhere((e) => e.id == orderId);
+    if (index != -1) {
+      final entry = allOrderHistory[index];
+      final mockTracked = TrackedOrder(
+        orderId: entry.id,
+        placedAt: entry.orderedAt,
+        totalRupees: entry.totalRupees,
+        paymentMethod: PaalvandiPaymentMethod.payAtDelivery,
+        productSummaries: entry.displayProducts.map((p) => p.titleLine).toList(),
+        products: entry.displayProducts,
+        deliveryOtp: deliveryOtpForOrderId(entry.id),
+        status: entry.isCancelled ? OrderTrackStatus.cancelled : OrderTrackStatus.delivered,
+        cancellationId: entry.cancellationId,
+      );
+      trackedOrders[orderId] = mockTracked;
+      return mockTracked;
+    }
+    return null;
+  }
 
   bool canTrackOrder(String orderId) {
     final order = trackedOrders[orderId];
@@ -159,8 +219,7 @@ class CartViewModel extends ChangeNotifier {
     if (items.isEmpty) return;
     final snapshot = List<CartLineItem>.from(items);
     final orderTotal = toPayRupees;
-    final id =
-        'PV-${DateTime.now().millisecondsSinceEpoch.remainder(10000).toString().padLeft(4, '0')}';
+    final id = AppIdGenerator.generate5CharId();
     final placedAt = DateTime.now();
 
     completedOrders.insert(
@@ -224,7 +283,11 @@ class CartViewModel extends ChangeNotifier {
     final order = trackedOrders[orderId];
     if (order == null || !order.canCancel) return;
 
-    final cancelled = order.copyWith(status: OrderTrackStatus.cancelled);
+    final cancelId = AppIdGenerator.generate5CharId();
+    final cancelled = order.copyWith(
+      status: OrderTrackStatus.cancelled,
+      cancellationId: cancelId,
+    );
     trackedOrders[orderId] = cancelled;
     if (activeTrackedOrder?.orderId == orderId) {
       activeTrackedOrder = cancelled;
@@ -241,6 +304,7 @@ class CartViewModel extends ChangeNotifier {
         products: entry.products,
         footerLines: entry.footerLines,
         isCancelled: true,
+        cancellationId: cancelId,
       );
     }
 

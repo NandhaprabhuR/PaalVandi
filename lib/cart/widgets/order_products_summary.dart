@@ -97,7 +97,7 @@ class OrderProductsSummary extends StatelessWidget {
       children: [
         Expanded(child: text),
         const SizedBox(width: 8),
-        CartProductThumbnail(size: thumbnailSize),
+        CartProductThumbnail(size: thumbnailSize, productName: product.titleLine),
       ],
     );
   }

@@ -4,6 +4,7 @@ import '../../../theme/customers_login_themeview.dart';
 import '../../../core/widgets/responsive_helper.dart';
 import '../../models/home_catalog_data.dart';
 import 'home_product_card.dart';
+import '../bulk_booking_view.dart';
 
 class HomeProductSection extends StatelessWidget {
   final HomeProductSectionData section;
@@ -27,13 +28,59 @@ class HomeProductSection extends StatelessWidget {
       children: [
         Padding(
           padding: EdgeInsets.fromLTRB(hPadding, scaleF(8), hPadding, scaleF(12)),
-          child: Text(
-            section.heading,
-            style: GoogleFonts.montserrat(
-              fontSize: fs(18),
-              fontWeight: FontWeight.bold,
-              color: CustomersLoginThemeView.sectionHeadingRed,
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                section.heading,
+                style: GoogleFonts.montserrat(
+                  fontSize: fs(18),
+                  fontWeight: FontWeight.bold,
+                  color: CustomersLoginThemeView.sectionHeadingRed,
+                ),
+              ),
+              if (section.heading == 'Milk')
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const BulkBookingView(
+                          initialProduct: 'Fresh Cow Milk',
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: scaleF(12), vertical: scaleF(6)),
+                    decoration: BoxDecoration(
+                      color: CustomersLoginThemeView.primaryBlue,
+                      borderRadius: BorderRadius.circular(scaleF(20)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.15),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.inventory_2_outlined, size: fs(12), color: Colors.white),
+                        SizedBox(width: scaleF(5)),
+                        Text(
+                          'Book Bulk',
+                          style: GoogleFonts.montserrat(
+                            fontSize: fs(11),
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
         SizedBox(

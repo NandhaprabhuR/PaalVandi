@@ -129,76 +129,119 @@ class _DeliveryCalendarViewState extends State<DeliveryCalendarView> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: DateFormat('MMMM yyyy').format(_focusedMonth),
-                            icon: const Icon(
-                              Icons.arrow_drop_down,
-                              color: CustomersLoginThemeView.primaryBlue,
+                        PopupMenuButton<String>(
+                          offset: Offset(-hPadding, 40),
+                          elevation: 4,
+                          color: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            side: const BorderSide(
+                              color: Colors.black,
+                              width: 1,
                             ),
-                            style: GoogleFonts.montserrat(
-                              fontSize: fs(16),
-                              fontWeight: FontWeight.bold,
-                              color: CustomersLoginThemeView.primaryBlue,
-                            ),
-                            dropdownColor: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            alignment: Alignment.centerLeft,
-                            items: [
-                              DropdownMenuItem(
-                                value: 'April 2026',
-                                child: Text('April 2026', style: GoogleFonts.montserrat(fontSize: fs(14), color: CustomersLoginThemeView.textDark)),
-                              ),
-                              DropdownMenuItem(
-                                value: 'May 2026',
-                                child: Text('May 2026', style: GoogleFonts.montserrat(fontSize: fs(14), fontWeight: FontWeight.bold, color: CustomersLoginThemeView.primaryBlue)),
-                              ),
-                              DropdownMenuItem(
-                                value: 'June 2026',
-                                child: Text('June 2026', style: GoogleFonts.montserrat(fontSize: fs(14), color: CustomersLoginThemeView.textDark)),
-                              ),
-                              DropdownMenuItem(
-                                value: 'July 2026',
-                                child: Text('July 2026', style: GoogleFonts.montserrat(fontSize: fs(14), color: CustomersLoginThemeView.textDark)),
-                              ),
-                              DropdownMenuItem(
-                                value: 'today',
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.today_rounded, size: 18, color: Color(0xFF4CAF50)),
-                                    SizedBox(width: scaleF(6)),
-                                    Text(
-                                      'Go to Today Date',
-                                      style: GoogleFonts.montserrat(
-                                        fontSize: fs(12),
-                                        fontWeight: FontWeight.bold,
-                                        color: CustomersLoginThemeView.textDark,
-                                      ),
-                                    ),
-                                  ],
+                          ),
+                          onSelected: (val) {
+                            if (val == 'today') {
+                              setState(() {
+                                _selectedDay = DateTime(2026, 5, 24);
+                                _focusedMonth = DateTime(2026, 5, 1);
+                              });
+                            } else {
+                              setState(() {
+                                if (val == 'April 2026') {
+                                  _focusedMonth = DateTime(2026, 4, 1);
+                                } else if (val == 'May 2026') {
+                                  _focusedMonth = DateTime(2026, 5, 1);
+                                } else if (val == 'June 2026') {
+                                  _focusedMonth = DateTime(2026, 6, 1);
+                                } else if (val == 'July 2026') {
+                                  _focusedMonth = DateTime(2026, 7, 1);
+                                }
+                              });
+                            }
+                          },
+                          itemBuilder: (BuildContext context) => [
+                            PopupMenuItem<String>(
+                              value: 'April 2026',
+                              child: Text(
+                                'April 2026',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: fs(14),
+                                  fontWeight: _focusedMonth.month == 4 ? FontWeight.bold : FontWeight.w500,
+                                  color: _focusedMonth.month == 4 ? CustomersLoginThemeView.primaryBlue : CustomersLoginThemeView.textDark,
                                 ),
                               ),
+                            ),
+                            PopupMenuItem<String>(
+                              value: 'May 2026',
+                              child: Text(
+                                'May 2026',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: fs(14),
+                                  fontWeight: _focusedMonth.month == 5 ? FontWeight.bold : FontWeight.w500,
+                                  color: _focusedMonth.month == 5 ? CustomersLoginThemeView.primaryBlue : CustomersLoginThemeView.textDark,
+                                ),
+                              ),
+                            ),
+                            PopupMenuItem<String>(
+                              value: 'June 2026',
+                              child: Text(
+                                'June 2026',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: fs(14),
+                                  fontWeight: _focusedMonth.month == 6 ? FontWeight.bold : FontWeight.w500,
+                                  color: _focusedMonth.month == 6 ? CustomersLoginThemeView.primaryBlue : CustomersLoginThemeView.textDark,
+                                ),
+                              ),
+                            ),
+                            PopupMenuItem<String>(
+                              value: 'July 2026',
+                              child: Text(
+                                'July 2026',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: fs(14),
+                                  fontWeight: _focusedMonth.month == 7 ? FontWeight.bold : FontWeight.w500,
+                                  color: _focusedMonth.month == 7 ? CustomersLoginThemeView.primaryBlue : CustomersLoginThemeView.textDark,
+                                ),
+                              ),
+                            ),
+                            const PopupMenuDivider(height: 1),
+                            PopupMenuItem<String>(
+                              value: 'today',
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.today_rounded, size: 18, color: Color(0xFF4CAF50)),
+                                  SizedBox(width: scaleF(8)),
+                                  Text(
+                                    'Go to Today Date',
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: fs(13),
+                                      fontWeight: FontWeight.bold,
+                                      color: CustomersLoginThemeView.textDark,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                DateFormat('MMMM yyyy').format(_focusedMonth),
+                                style: GoogleFonts.montserrat(
+                                  fontSize: fs(16),
+                                  fontWeight: FontWeight.bold,
+                                  color: CustomersLoginThemeView.primaryBlue,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(
+                                Icons.arrow_drop_down,
+                                color: CustomersLoginThemeView.primaryBlue,
+                                size: 22,
+                              ),
                             ],
-                            onChanged: (val) {
-                              if (val == 'today') {
-                                setState(() {
-                                  _selectedDay = DateTime(2026, 5, 24);
-                                  _focusedMonth = DateTime(2026, 5, 1);
-                                });
-                              } else if (val != null) {
-                                setState(() {
-                                  if (val == 'April 2026') {
-                                    _focusedMonth = DateTime(2026, 4, 1);
-                                  } else if (val == 'May 2026') {
-                                    _focusedMonth = DateTime(2026, 5, 1);
-                                  } else if (val == 'June 2026') {
-                                    _focusedMonth = DateTime(2026, 6, 1);
-                                  } else if (val == 'July 2026') {
-                                    _focusedMonth = DateTime(2026, 7, 1);
-                                  }
-                                });
-                              }
-                            },
                           ),
                         ),
                         Text(
@@ -247,7 +290,7 @@ class _DeliveryCalendarViewState extends State<DeliveryCalendarView> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: CustomersLoginThemeView.borderColor.withValues(alpha: 0.4)),
+                    border: Border.all(color: Colors.black, width: 1),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -494,7 +537,7 @@ class _DeliveryCalendarViewState extends State<DeliveryCalendarView> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: CustomersLoginThemeView.borderColor.withValues(alpha: 0.4)),
+          border: Border.all(color: Colors.black, width: 1),
         ),
         child: Column(
           children: [
@@ -535,7 +578,7 @@ class _DeliveryCalendarViewState extends State<DeliveryCalendarView> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: CustomersLoginThemeView.borderColor.withValues(alpha: 0.4)),
+          border: Border.all(color: Colors.black, width: 1),
         ),
         child: Column(
           children: [
@@ -681,7 +724,7 @@ class _DeliveryCalendarViewState extends State<DeliveryCalendarView> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: CustomersLoginThemeView.borderColor.withValues(alpha: 0.3)),
+                  border: Border.all(color: Colors.black, width: 1),
                   boxShadow: const [
                     BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 1)),
                   ],

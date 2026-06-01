@@ -40,6 +40,7 @@ class BottleWalletHistoryView extends StatelessWidget {
         ),
       ),
       body: ListView(
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
           _SummaryCard(
@@ -85,10 +86,11 @@ class _SummaryCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.06),
+        color: Colors.black.withValues(alpha: 0.02),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.25),
+          color: Colors.black,
+          width: 1,
         ),
       ),
       child: Column(
@@ -175,92 +177,102 @@ class _BottleHistoryTile extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.2),
+          color: Colors.black,
+          width: 1,
         ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  entry.productName,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    color: CustomersLoginThemeView.textDark,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '${entry.quantity} · Order ${entry.orderId}',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 11,
-                    color: CustomersLoginThemeView.quantityAccent,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  dateStr,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 11,
-                    color: CustomersLoginThemeView.textGrey,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  entry.action,
-                  style: GoogleFonts.montserrat(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: CustomersLoginThemeView.primaryBlue,
-                  ),
-                ),
-                Text(
-                  'Deposit: ₹${entry.depositRupees}'
-                  '${entry.refundRupees != null ? ' · Refund: ₹${entry.refundRupees}' : ''}',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 11,
-                    color: CustomersLoginThemeView.textGrey,
-                  ),
-                ),
-                if (_canReturnBottle || returnRequested) ...[
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 38,
-                    child: OutlinedButton(
-                      onPressed: returnRequested
-                          ? null
-                          : () => _confirmReturn(context),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: CustomersLoginThemeView.primaryBlue,
-                        side: const BorderSide(
-                          color: CustomersLoginThemeView.primaryBlue,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: Text(
-                        returnRequested
-                            ? 'Return requested'
-                            : 'Return Bottle',
-                        style: GoogleFonts.montserrat(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                        ),
+          // Top Row: Info Column on the left, Image Thumbnail on the right
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      entry.productName,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: CustomersLoginThemeView.textDark,
                       ),
                     ),
-                  ),
-                ],
-              ],
-            ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${entry.quantity} · Wallet ID: ${entry.walletId ?? 'W4T8Y'} · Order ${entry.orderId}',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 11,
+                        color: CustomersLoginThemeView.quantityAccent,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      dateStr,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 11,
+                        color: CustomersLoginThemeView.textGrey,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      entry.action,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: CustomersLoginThemeView.primaryBlue,
+                      ),
+                    ),
+                    Text(
+                      'Deposit: ₹${entry.depositRupees}'
+                      '${entry.refundRupees != null ? ' · Refund: ₹${entry.refundRupees}' : ''}',
+                      style: GoogleFonts.montserrat(
+                        fontSize: 11,
+                        color: CustomersLoginThemeView.textGrey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              CartProductThumbnail(size: 72, productName: entry.productName),
+            ],
           ),
-          const SizedBox(width: 10),
-          const CartProductThumbnail(size: 72),
+          
+          // Bottom section: Full length Return Bottle button in blue theme
+          if (_canReturnBottle || returnRequested) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 40,
+              child: ElevatedButton(
+                onPressed: returnRequested
+                    ? null
+                    : () => _confirmReturn(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: CustomersLoginThemeView.primaryBlue,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.5),
+                  disabledForegroundColor: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                child: Text(
+                  returnRequested
+                      ? 'Return requested'
+                      : 'Return Bottle',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

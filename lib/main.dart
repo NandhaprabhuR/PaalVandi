@@ -6,13 +6,14 @@ import 'package:google_fonts/google_fonts.dart';
 // ViewModels
 import 'auth/viewmodels/customers_login_viewmodel.dart';
 import 'auth/views/customers_login_view.dart';
-
 import 'otp/viewmodels/customers_otp_viewmodel.dart';
 import 'otp/views/customers_otp_view.dart';
 import 'profile/viewmodels/customers_profile_viewmodel.dart';
 import 'profile/views/customers_profile_view.dart';
+import 'profile/views/delete_account_view.dart';
 import 'home/viewmodels/customers_home_viewmodel.dart';
 import 'bottomnavigation/views/bottom_navigation_view.dart';
+import 'core/widgets/internet_connection_wrapper.dart';
 import 'core/app_route_storage.dart';
 import 'core/route_persistence_observer.dart';
 import 'theme/customers_login_themeview.dart';
@@ -30,11 +31,37 @@ CustomTransitionPage buildPageWithFadeTransition<T>({
   return CustomTransitionPage<T>(
     key: state.pageKey,
     child: child,
-    transitionDuration: const Duration(milliseconds: 300),
+    transitionDuration: const Duration(milliseconds: 350),
+    reverseTransitionDuration: const Duration(milliseconds: 300),
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      return FadeTransition(
-        opacity: CurveTween(curve: Curves.easeInOut).animate(animation),
-        child: child,
+      final slideIn = Tween<Offset>(
+        begin: const Offset(1.0, 0.0),
+        end: Offset.zero,
+      ).animate(
+        CurvedAnimation(
+          parent: animation,
+          curve: Curves.fastOutSlowIn,
+          reverseCurve: Curves.fastOutSlowIn,
+        ),
+      );
+
+      final slideOut = Tween<Offset>(
+        begin: Offset.zero,
+        end: const Offset(-0.3, 0.0),
+      ).animate(
+        CurvedAnimation(
+          parent: secondaryAnimation,
+          curve: Curves.fastOutSlowIn,
+          reverseCurve: Curves.fastOutSlowIn,
+        ),
+      );
+
+      return SlideTransition(
+        position: slideIn,
+        child: SlideTransition(
+          position: slideOut,
+          child: child,
+        ),
       );
     },
   );
@@ -143,6 +170,15 @@ class _PaalvandiRouterApp extends StatelessWidget {
             child: const BottomNavigationView(),
           ),
         ),
+        GoRoute(
+          path: '/delete-account',
+          name: '/delete-account',
+          pageBuilder: (context, state) => buildPageWithFadeTransition(
+            context: context,
+            state: state,
+            child: const DeleteAccountView(),
+          ),
+        ),
       ],
     );
 
@@ -190,7 +226,7 @@ class _PaalvandiRouterApp extends StatelessWidget {
                     maxScaleFactor: 1.15,
                   ),
                 ),
-                child: child!,
+                child: InternetConnectionWrapper(child: child!),
               );
             },
             routerConfig: router,

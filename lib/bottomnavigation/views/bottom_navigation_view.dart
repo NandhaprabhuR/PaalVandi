@@ -13,9 +13,14 @@ import '../../core/widgets/responsive_helper.dart';
 import '../../complaints/viewmodels/complaints_viewmodel.dart';
 import '../home_shell_scope.dart';
 import '../widgets/added_to_cart_bar.dart';
+import '../../rewards/viewmodels/rewards_viewmodel.dart';
+import '../../rewards/views/rewards_view.dart';
+
 
 class BottomNavigationView extends StatefulWidget {
   const BottomNavigationView({super.key});
+
+  static ValueChanged<int>? onSelectTabGlobal;
 
   @override
   State<BottomNavigationView> createState() => _BottomNavigationViewState();
@@ -26,11 +31,18 @@ class _BottomNavigationViewState extends State<BottomNavigationView> {
   final SubscriptionsBookingStore _subscriptionsStore =
       SubscriptionsBookingStore();
   final ComplaintsViewModel _complaintsViewModel = ComplaintsViewModel();
+  late final RewardsViewModel _rewardsViewModel =
+      RewardsViewModel(cartViewModel: _cartViewModel);
   int _currentIndex = 0;
 
   @override
   void initState() {
     super.initState();
+    BottomNavigationView.onSelectTabGlobal = (idx) {
+      if (mounted) {
+        _onTap(idx);
+      }
+    };
     AppRouteStorage.saveRoute('/home');
     _restoreTabIndex();
   }
@@ -58,9 +70,11 @@ class _BottomNavigationViewState extends State<BottomNavigationView> {
 
   @override
   void dispose() {
+    BottomNavigationView.onSelectTabGlobal = null;
     _cartViewModel.dispose();
     _subscriptionsStore.dispose();
     _complaintsViewModel.dispose();
+    _rewardsViewModel.dispose();
     super.dispose();
   }
 
@@ -93,6 +107,7 @@ class _BottomNavigationViewState extends State<BottomNavigationView> {
                   const HomeTabView(),
                   const CartTabView(),
                   const SubscriptionsTabView(),
+                  RewardsView(viewModel: _rewardsViewModel),
                   ProfileTabView(complaintsViewModel: _complaintsViewModel),
                 ],
               ),
@@ -151,6 +166,11 @@ class _BottomNavigationViewState extends State<BottomNavigationView> {
                               )
                             : const Icon(Icons.inventory_2),
                         label: 'Subscription',
+                      ),
+                      const BottomNavigationBarItem(
+                        icon: Icon(Icons.card_giftcard_outlined),
+                        activeIcon: Icon(Icons.redeem),
+                        label: 'Rewards',
                       ),
                       const BottomNavigationBarItem(
                         icon: Icon(Icons.person_outline),

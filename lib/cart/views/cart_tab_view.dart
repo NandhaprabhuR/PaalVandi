@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../home/models/home_catalog_data.dart';
 import '../../theme/customers_login_themeview.dart';
@@ -11,6 +12,7 @@ import '../../payment/views/payment_selection_view.dart';
 import 'detailed_bill_view.dart';
 import 'bottle_wallet_history_view.dart';
 import 'order_history_view.dart';
+import '../../bottomnavigation/views/bottom_navigation_view.dart';
 
 class CartTabView extends StatelessWidget {
   const CartTabView({super.key});
@@ -19,7 +21,7 @@ class CartTabView extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.2),
+          color: Colors.black,
           width: 1,
         ),
       );
@@ -55,12 +57,16 @@ class CartTabView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.shopping_cart_outlined,
-            size: scaleF(64).clamp(48.0, 80.0),
-            color: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.4),
+          Transform.translate(
+            offset: Offset(0, scaleF(20)),
+            child: Lottie.asset(
+              'assets/animations/noitemincart.json',
+              width: scaleF(180),
+              height: scaleF(180),
+              fit: BoxFit.contain,
+            ),
           ),
-          SizedBox(height: scaleF(16)),
+          const SizedBox(height: 0),
           Text(
             'Your cart is empty',
             style: CustomersLoginThemeView.titleStyle.copyWith(fontSize: fs(18)),
@@ -69,6 +75,28 @@ class CartTabView extends StatelessWidget {
           Text(
             'Tap + on a product to order',
             style: CustomersLoginThemeView.subtitleStyle.copyWith(fontSize: fs(13)),
+          ),
+          SizedBox(height: scaleF(24)),
+          InkWell(
+            onTap: () {
+              if (BottomNavigationView.onSelectTabGlobal != null) {
+                BottomNavigationView.onSelectTabGlobal!(0);
+              }
+            },
+            borderRadius: BorderRadius.circular(30),
+            child: Container(
+              width: scaleF(52),
+              height: scaleF(52),
+              decoration: const BoxDecoration(
+                color: CustomersLoginThemeView.primaryBlue,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.add,
+                color: Colors.white,
+                size: 28,
+              ),
+            ),
           ),
         ],
       ),
@@ -252,9 +280,10 @@ class _CartItemCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // Top: Product Name (occupies full width of Expanded column!)
                   Text(
                     item.productName,
-                    maxLines: 1,
+                    maxLines: 1, // Full width, so 1 line is absolutely sufficient!
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.montserrat(
                       fontSize: fs(14),
@@ -263,51 +292,66 @@ class _CartItemCard extends StatelessWidget {
                       height: 1.1,
                     ),
                   ),
-                  SizedBox(height: scaleF(6)),
-                  Text(
-                    '₹${item.lineTotalRupees}',
-                    style: GoogleFonts.montserrat(
-                      fontSize: fs(15),
-                      fontWeight: FontWeight.w800,
-                      color: CustomersLoginThemeView.priceAccent,
-                      height: 1.0,
-                    ),
-                  ),
-                  if (item.count > 1) ...[
-                    SizedBox(height: scaleF(2)),
-                    Text(
-                      '₹${item.unitTotalRupees} × ${item.count}',
-                      style: GoogleFonts.montserrat(
-                        fontSize: fs(10),
-                        fontWeight: FontWeight.w500,
-                        color: CustomersLoginThemeView.textGrey,
-                        height: 1.1,
+                  SizedBox(height: scaleF(8)),
+
+                  // Bottom: Row containing Price/Dropdown, Volume, and Stepper!
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '₹${item.lineTotalRupees}',
+                              style: GoogleFonts.montserrat(
+                                fontSize: fs(15),
+                                fontWeight: FontWeight.w800,
+                                color: CustomersLoginThemeView.priceAccent,
+                                height: 1.0,
+                              ),
+                            ),
+                            if (item.count > 1) ...[
+                              SizedBox(height: scaleF(2)),
+                              Text(
+                                '₹${item.unitTotalRupees} × ${item.count}',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: fs(10),
+                                  fontWeight: FontWeight.w500,
+                                  color: CustomersLoginThemeView.textGrey,
+                                  height: 1.1,
+                                ),
+                              ),
+                            ],
+                            SizedBox(height: scaleF(4)),
+                            _DeliveryMethodDropdown(
+                              method: item.deliveryMethod,
+                              depositTotalRupees: item.totalDepositRupees,
+                              onSelected: onDeliveryMethodChanged,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                  SizedBox(height: scaleF(4)),
-                  _DeliveryMethodDropdown(
-                    method: item.deliveryMethod,
-                    depositTotalRupees: item.totalDepositRupees,
-                    onSelected: onDeliveryMethodChanged,
+                      Padding(
+                        padding: EdgeInsets.only(left: scaleF(6)),
+                        child: _VolumeDropdown(
+                          quantity: item.quantity,
+                          variants: variants,
+                          itemCount: item.count,
+                          onSelected: onVariantChanged,
+                        ),
+                      ),
+                      SizedBox(width: scaleF(6)),
+                      _QuantityStepper(
+                        count: item.count,
+                        onDecrement: onDecrement,
+                        onIncrement: onIncrement,
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ),
-            Padding(
-              padding: EdgeInsets.only(left: scaleF(6)),
-              child: _VolumeDropdown(
-                quantity: item.quantity,
-                variants: variants,
-                itemCount: item.count,
-                onSelected: onVariantChanged,
-              ),
-            ),
-            SizedBox(width: scaleF(6)),
-            _QuantityStepper(
-              count: item.count,
-              onDecrement: onDecrement,
-              onIncrement: onIncrement,
             ),
             SizedBox(width: scaleF(8)),
             Stack(
@@ -362,7 +406,7 @@ class _RemoveItemDialog extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.25),
+            color: Colors.black,
           ),
         ),
         child: Column(
@@ -462,7 +506,12 @@ class _DeliveryMethodDropdown extends StatelessWidget {
     return PopupMenuButton<DeliveryMethod>(
       onSelected: onSelected,
       offset: Offset(0, scaleF(36)),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 4,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: Colors.black, width: 1),
+      ),
       itemBuilder: (context) => DeliveryMethod.values
           .map(
             (m) => PopupMenuItem(
@@ -508,9 +557,8 @@ class _DeliveryMethodDropdown extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: method == DeliveryMethod.depositBottle
-                ? CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.45)
-                : CustomersLoginThemeView.borderColor,
+            color: Colors.black,
+            width: 1,
           ),
         ),
         child: Row(
@@ -582,7 +630,12 @@ class _VolumeDropdown extends StatelessWidget {
     return PopupMenuButton<HomeProductItem>(
       onSelected: onSelected,
       offset: Offset(0, scaleF(32)),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 4,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: Colors.black, width: 1),
+      ),
       itemBuilder: (context) => options
           .map(
             (v) => PopupMenuItem(
@@ -626,10 +679,8 @@ class _VolumeDropdown extends StatelessWidget {
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: itemCount > 1
-                  ? CustomersLoginThemeView.primaryBlue
-                  : CustomersLoginThemeView.borderColor,
-              width: itemCount > 1 ? 1.5 : 1,
+              color: Colors.black,
+              width: 1,
             ),
           ),
           child: Row(
