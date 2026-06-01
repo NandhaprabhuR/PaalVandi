@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,10 +10,46 @@ import '../viewmodels/customers_otp_viewmodel.dart';
 import '../../theme/customers_login_themeview.dart';
 import '../../core/widgets/responsive_helper.dart';
 
-class CustomersOtpView extends StatelessWidget {
+class CustomersOtpView extends StatefulWidget {
   final String phoneNumber;
   
   const CustomersOtpView({super.key, required this.phoneNumber});
+
+  @override
+  State<CustomersOtpView> createState() => _CustomersOtpViewState();
+}
+
+class _CustomersOtpViewState extends State<CustomersOtpView> {
+  int _timerSeconds = 60;
+  Timer? _countdownTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  @override
+  void dispose() {
+    _countdownTimer?.cancel();
+    super.dispose();
+  }
+
+  void _startTimer() {
+    setState(() {
+      _timerSeconds = 60;
+    });
+    _countdownTimer?.cancel();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_timerSeconds == 0) {
+        timer.cancel();
+      } else {
+        setState(() {
+          _timerSeconds--;
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +127,7 @@ class CustomersOtpView extends StatelessWidget {
                     SizedBox(height: scaleF(24)),
 
                     Text(
-                      'Enter the 6-digit code sent to\n$phoneNumber',
+                      'Enter the 6-digit code sent to\n${widget.phoneNumber}',
                       style: CustomersLoginThemeView.subtitleStyle.copyWith(
                         fontSize: fs(13),
                       ),
@@ -130,6 +167,52 @@ class CustomersOtpView extends StatelessWidget {
                             .add(OtpCodeChanged(value)),
                       ),
                     ),
+                    SizedBox(height: scaleF(20)),
+
+                    // Resend OTP text or countdown timer
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _timerSeconds > 0 ? 'Resend in ${_timerSeconds}s' : 'Didn\'t receive code?',
+                          style: GoogleFonts.montserrat(
+                            fontSize: fs(11),
+                            fontWeight: FontWeight.w600,
+                            color: CustomersLoginThemeView.textGrey,
+                          ),
+                        ),
+                        if (_timerSeconds == 0)
+                          GestureDetector(
+                            onTap: () {
+                              _startTimer();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'OTP resent successfully.',
+                                    style: GoogleFonts.montserrat(
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  backgroundColor: CustomersLoginThemeView.primaryBlue,
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Text(
+                              'Resend OTP',
+                              style: GoogleFonts.montserrat(
+                                fontSize: fs(11),
+                                fontWeight: FontWeight.bold,
+                                color: CustomersLoginThemeView.primaryBlue,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                     SizedBox(height: scaleF(24)),
 
                     if (state is OtpLoading)
@@ -147,7 +230,7 @@ class CustomersOtpView extends StatelessWidget {
                           onPressed: () {
                             context
                                 .read<CustomersOtpViewModel>()
-                                .add(OtpVerifySubmitted(phoneNumber));
+                                .add(OtpVerifySubmitted(widget.phoneNumber));
                           },
                           child: Text(
                             'Verify & Proceed',
@@ -165,7 +248,7 @@ class CustomersOtpView extends StatelessWidget {
             ),
           );
         },
-        ),
-      );
-    }
+      ),
+    );
   }
+}

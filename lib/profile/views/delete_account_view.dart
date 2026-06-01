@@ -22,7 +22,7 @@ class _DeleteAccountViewState extends State<DeleteAccountView> {
   bool _isLoading = false;
 
   // Countdown timer for OTP
-  int _timerSeconds = 30;
+  int _timerSeconds = 60;
   Timer? _countdownTimer;
 
   @override
@@ -35,7 +35,7 @@ class _DeleteAccountViewState extends State<DeleteAccountView> {
 
   void _startTimer() {
     setState(() {
-      _timerSeconds = 30;
+      _timerSeconds = 60;
     });
     _countdownTimer?.cancel();
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -128,7 +128,7 @@ class _DeleteAccountViewState extends State<DeleteAccountView> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Lottie.asset(
-                  'assets/animations/paymentsuccess.json',
+                  'assets/animations/accountdeletedsuccessfully.json',
                   width: scaleF(160),
                   height: scaleF(160),
                   fit: BoxFit.contain,
