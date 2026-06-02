@@ -18,7 +18,7 @@ class HomeProductSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cardHeight = ResponsiveHelper.scaleHeight(context, 184).clamp(170.0, 230.0);
+    final cardHeight = ResponsiveHelper.scaleHeight(context, 212).clamp(205.0, 255.0);
     final fs = (double size) => ResponsiveHelper.scaledFontSize(context, size);
     final scaleF = (double val) => ResponsiveHelper.scaledValue(context, val);
     final hPadding = ResponsiveHelper.horizontalPadding(context);
@@ -90,25 +90,11 @@ class HomeProductSection extends StatelessWidget {
             padding: EdgeInsets.only(left: hPadding, right: 4),
             itemCount: section.products.length,
             itemBuilder: (context, index) {
-              return TweenAnimationBuilder<double>(
-                tween: Tween(begin: 0, end: 1),
-                duration: Duration(milliseconds: 350 + (sectionIndex * 80) + (index * 40)),
-                curve: Curves.easeOut,
-                builder: (context, value, child) {
-                  return Opacity(
-                    opacity: value,
-                    child: Transform.translate(
-                      offset: Offset(20 * (1 - value), 0),
-                      child: child,
-                    ),
-                  );
-                },
-                child: HomeProductCard(
-                  productName: section.productName,
-                  item: section.products[index],
-                  showDepositBadge: section.showDepositBadge,
-                  showRefillBadge: section.showRefillBadge,
-                ),
+              return HomeProductCard(
+                productName: section.productName,
+                item: section.products[index],
+                showDepositBadge: section.showDepositBadge,
+                showRefillBadge: section.showRefillBadge,
               );
             },
           ),

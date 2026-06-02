@@ -13,13 +13,16 @@ import 'profile/views/customers_profile_view.dart';
 import 'profile/views/delete_account_view.dart';
 import 'home/viewmodels/customers_home_viewmodel.dart';
 import 'bottomnavigation/views/bottom_navigation_view.dart';
-import 'core/widgets/internet_connection_wrapper.dart';
 import 'core/app_route_storage.dart';
 import 'core/route_persistence_observer.dart';
 import 'theme/customers_login_themeview.dart';
+import 'core/widgets/internet_connection_wrapper.dart';
+
+import 'core/services/haptic_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await HapticService.init();
   runApp(const PaalvandiApp());
 }
 
@@ -101,7 +104,7 @@ class _PaalvandiAppState extends State<PaalvandiApp> {
                     maxScaleFactor: 1.15,
                   ),
                 ),
-                child: child!,
+                child: InternetConnectionWrapper(child: child!),
               );
             },
             home: Scaffold(

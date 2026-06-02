@@ -51,6 +51,7 @@ class LoginFailure extends CustomersLoginState {
 
 // ViewModel (BLoC)
 class CustomersLoginViewModel extends Bloc<CustomersLoginEvent, CustomersLoginState> {
+  // ignore: unused_field
   final dynamic _supabase; // Changed from SupabaseClient to dynamic for mocking
 
   CustomersLoginViewModel(this._supabase) : super(const LoginInitial(CustomersLoginModel())) {

@@ -2,14 +2,14 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../cart/viewmodels/cart_scope.dart';
-import '../../../cart/viewmodels/cart_viewmodel.dart';
 import '../../../theme/customers_login_themeview.dart';
 import '../../../core/widgets/responsive_helper.dart';
 import '../../../core/app_route_storage.dart';
-import '../../../bottomnavigation/home_shell_scope.dart';
 import '../../../bottomnavigation/views/bottom_navigation_view.dart';
 import '../models/home_catalog_data.dart';
 import 'product_reviews_view.dart';
+import '../../../core/services/haptic_service.dart';
+import '../../../core/widgets/shimmer_loading.dart';
 
 class ProductDetailsView extends StatefulWidget {
   final String productName;
@@ -28,12 +28,21 @@ class ProductDetailsView extends StatefulWidget {
 class _ProductDetailsViewState extends State<ProductDetailsView> {
   late HomeProductItem _selectedItem;
   late final List<HomeProductItem> _variants;
+  bool _isLocalLoading = true;
 
   @override
   void initState() {
     super.initState();
     _selectedItem = widget.initialItem;
     _variants = HomeCatalogData.variantsForProduct(widget.productName);
+
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      if (mounted) {
+        setState(() {
+          _isLocalLoading = false;
+        });
+      }
+    });
   }
 
   Color _getAvatarTint(String emoji) {
@@ -103,10 +112,12 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
         ),
         centerTitle: true,
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
+      body: _isLocalLoading
+          ? _buildProductDetailsSkeleton(context, hPadding, scaleF, fs)
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
             child: ListView(
               physics: const BouncingScrollPhysics(),
               padding: EdgeInsets.symmetric(horizontal: hPadding, vertical: scaleF(10)),
@@ -218,41 +229,62 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                                 SizedBox(height: scaleF(24)),
 
                                 // Stepper Chip directly under Stats
-                                Container(
-                                  width: scaleF(108),
-                                  height: scaleF(36),
-                                  decoration: BoxDecoration(
-                                    color: CustomersLoginThemeView.primaryBlue,
-                                    borderRadius: BorderRadius.circular(18),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      IconButton(
-                                        padding: EdgeInsets.zero,
-                                        icon: const Icon(Icons.remove, size: 16, color: Colors.white),
-                                        onPressed: () {
-                                          cart.decrementFromHome(widget.productName, _selectedItem.quantity);
-                                        },
-                                      ),
-                                      Text(
-                                        '$count',
-                                        style: GoogleFonts.montserrat(
-                                          fontSize: fs(14),
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
+                                _selectedItem.stockStatus == 'Out of Stock'
+                                    ? Container(
+                                        width: scaleF(108),
+                                        height: scaleF(36),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade200,
+                                          borderRadius: BorderRadius.circular(18),
+                                          border: Border.all(color: Colors.grey.shade400, width: 1),
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          'Sold Out',
+                                          style: GoogleFonts.montserrat(
+                                            fontSize: fs(11),
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.grey.shade600,
+                                          ),
+                                        ),
+                                      )
+                                    : Container(
+                                        width: scaleF(108),
+                                        height: scaleF(36),
+                                        decoration: BoxDecoration(
+                                          color: CustomersLoginThemeView.primaryBlue,
+                                          borderRadius: BorderRadius.circular(18),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            IconButton(
+                                              padding: EdgeInsets.zero,
+                                              icon: const Icon(Icons.remove, size: 16, color: Colors.white),
+                                              onPressed: () {
+                                                HapticService.lightImpact();
+                                                cart.decrementFromHome(widget.productName, _selectedItem.quantity);
+                                              },
+                                            ),
+                                            Text(
+                                              '$count',
+                                              style: GoogleFonts.montserrat(
+                                                fontSize: fs(14),
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                            IconButton(
+                                              padding: EdgeInsets.zero,
+                                              icon: const Icon(Icons.add, size: 16, color: Colors.white),
+                                              onPressed: () {
+                                                HapticService.lightImpact();
+                                                cart.addFromHome(widget.productName, _selectedItem);
+                                              },
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                      IconButton(
-                                        padding: EdgeInsets.zero,
-                                        icon: const Icon(Icons.add, size: 16, color: Colors.white),
-                                        onPressed: () {
-                                          cart.addFromHome(widget.productName, _selectedItem);
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
                               ],
                             );
                           },
@@ -301,6 +333,7 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                       onSelected: (val) {
                         if (val) {
                           setState(() => _selectedItem = v);
+                          HapticService.selection();
                         }
                       },
                       selectedColor: CustomersLoginThemeView.primaryBlue.withOpacity(0.08),
@@ -326,45 +359,112 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                 const Divider(height: 1),
                 SizedBox(height: scaleF(16)),
 
-                // Product Name and Star Rating Row
+                 // Product Name and Star Rating Row
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Expanded(
-                      child: Text(
-                        widget.productName,
-                        style: GoogleFonts.montserrat(
-                          fontSize: fs(18),
-                          fontWeight: FontWeight.w800,
-                          color: CustomersLoginThemeView.textDark,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.productName,
+                            style: GoogleFonts.montserrat(
+                              fontSize: fs(18),
+                              fontWeight: FontWeight.w800,
+                              color: CustomersLoginThemeView.textDark,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          // Stock status and packaging tags
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: _selectedItem.stockStatus == 'Out of Stock'
+                                      ? const Color(0xFFD32F2F)
+                                      : (_selectedItem.stockStatus == 'Low Stock'
+                                          ? const Color(0xFFF57C00)
+                                          : const Color(0xFF388E3C)),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  _selectedItem.stockStatus,
+                                  style: GoogleFonts.montserrat(
+                                    fontSize: fs(8),
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                widget.productName.contains('Curd')
+                                    ? '🥣 Refill Available'
+                                    : '♻ Deposit Bottle Available',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: fs(10),
+                                  fontWeight: FontWeight.bold,
+                                  color: CustomersLoginThemeView.primaryBlue,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                    AnimatedBuilder(
-                      animation: cart,
-                      builder: (context, _) {
-                        final productReviews = cart.productReviews
-                            .where((r) => r.productName == widget.productName)
-                            .toList();
-                        final double avgRating = productReviews.isEmpty
-                            ? 0.0
-                            : productReviews.map((r) => r.rating).reduce((a, b) => a + b) / productReviews.length;
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              '⭐ ${_selectedItem.rating.toStringAsFixed(1)} ',
+                              style: GoogleFonts.montserrat(
+                                fontSize: fs(14),
+                                fontWeight: FontWeight.bold,
+                                color: Colors.amber.shade800,
+                              ),
+                            ),
+                            Text(
+                              '(${_selectedItem.totalOrders})',
+                              style: GoogleFonts.montserrat(
+                                fontSize: fs(10),
+                                fontWeight: FontWeight.w600,
+                                color: CustomersLoginThemeView.textGrey,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        AnimatedBuilder(
+                          animation: cart,
+                          builder: (context, _) {
+                            final productReviews = cart.productReviews
+                                .where((r) => r.productName == widget.productName)
+                                .toList();
+                            final double avgRating = productReviews.isEmpty
+                                ? 0.0
+                                : productReviews.map((r) => r.rating).reduce((a, b) => a + b) / productReviews.length;
 
-                        return Row(
-                          children: List.generate(5, (index) {
-                            final double val = index + 1.0;
-                            return Icon(
-                              val <= avgRating
-                                  ? Icons.star_rounded
-                                  : (val - 0.5 <= avgRating
-                                      ? Icons.star_half_rounded
-                                      : Icons.star_border_rounded),
-                              color: Colors.amber,
-                              size: fs(20),
+                            return Row(
+                              children: List.generate(5, (index) {
+                                final double val = index + 1.0;
+                                return Icon(
+                                  val <= avgRating
+                                      ? Icons.star_rounded
+                                      : (val - 0.5 <= avgRating
+                                          ? Icons.star_half_rounded
+                                          : Icons.star_border_rounded),
+                                  color: Colors.amber,
+                                  size: fs(16),
+                                );
+                              }),
                             );
-                          }),
-                        );
-                      }
+                          }
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -490,6 +590,72 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
               final double unitPrice = _selectedItem.priceRupees.toDouble();
               final double calculatedTotal = count == 0 ? unitPrice : (unitPrice * count);
 
+              if (_selectedItem.stockStatus == 'Out of Stock') {
+                return Container(
+                  padding: EdgeInsets.fromLTRB(hPadding, scaleF(12), hPadding, scaleF(16) + MediaQuery.paddingOf(context).bottom),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border(
+                      top: BorderSide(
+                        color: CustomersLoginThemeView.borderColor.withOpacity(0.5),
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Total Price',
+                            style: GoogleFonts.montserrat(
+                              fontSize: fs(11),
+                              fontWeight: FontWeight.w600,
+                              color: CustomersLoginThemeView.textGrey,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '₹${calculatedTotal.toStringAsFixed(2)}',
+                            style: GoogleFonts.montserrat(
+                              fontSize: fs(18),
+                              fontWeight: FontWeight.w900,
+                              color: CustomersLoginThemeView.textDark,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(
+                        width: scaleF(140),
+                        height: scaleF(44),
+                        child: ElevatedButton(
+                          onPressed: null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey.shade300,
+                            disabledBackgroundColor: Colors.grey.shade200,
+                            disabledForegroundColor: Colors.grey.shade500,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text(
+                            'Sold Out',
+                            style: GoogleFonts.montserrat(
+                              fontSize: fs(13),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
               if (count == 0) {
                 // Split row layout showing Total Price and Add to Cart button
                 return Container(
@@ -534,6 +700,7 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                         height: scaleF(44),
                         child: ElevatedButton(
                           onPressed: () {
+                            HapticService.mediumImpact();
                             cart.addFromHome(widget.productName, _selectedItem);
                           },
                           style: ElevatedButton.styleFrom(
@@ -613,6 +780,7 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                               constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
                               icon: const Icon(Icons.remove, size: 14, color: Colors.white),
                               onPressed: () {
+                                HapticService.lightImpact();
                                 cart.decrementFromHome(widget.productName, _selectedItem.quantity);
                               },
                             ),
@@ -629,6 +797,7 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
                               constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
                               icon: const Icon(Icons.add, size: 14, color: Colors.white),
                               onPressed: () {
+                                HapticService.lightImpact();
                                 cart.addFromHome(widget.productName, _selectedItem);
                               },
                             ),
@@ -678,6 +847,183 @@ class _ProductDetailsViewState extends State<ProductDetailsView> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildProductDetailsSkeleton(
+    BuildContext context,
+    double hPadding,
+    double Function(double) scaleF,
+    double Function(double) fs,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: ListView(
+            physics: const NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.symmetric(horizontal: hPadding, vertical: scaleF(10)),
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: scaleF(20)),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 4,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: scaleF(10)),
+                          const ShimmerSkeleton(width: 70, height: 10, borderRadius: 2),
+                          const SizedBox(height: 4),
+                          const ShimmerSkeleton(width: 80, height: 22, borderRadius: 3),
+                          SizedBox(height: scaleF(16)),
+                          const ShimmerSkeleton(width: 50, height: 10, borderRadius: 2),
+                          const SizedBox(height: 4),
+                          const ShimmerSkeleton(width: 90, height: 22, borderRadius: 3),
+                          SizedBox(height: scaleF(16)),
+                          const ShimmerSkeleton(width: 40, height: 10, borderRadius: 2),
+                          const SizedBox(height: 4),
+                          const ShimmerSkeleton(width: 85, height: 24, borderRadius: 3),
+                          SizedBox(height: scaleF(24)),
+                          ShimmerSkeleton(width: scaleF(108), height: scaleF(36), borderRadius: 18),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      flex: 4,
+                      child: Container(
+                        padding: EdgeInsets.only(top: scaleF(10)),
+                        alignment: Alignment.center,
+                        child: ShimmerSkeleton(
+                          width: scaleF(160),
+                          height: scaleF(220),
+                          borderRadius: 20,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: scaleF(24)),
+
+              const ShimmerSkeleton(width: 100, height: 12, borderRadius: 3),
+              SizedBox(height: scaleF(8)),
+              Row(
+                children: [
+                  ShimmerSkeleton(width: scaleF(70), height: scaleF(32), borderRadius: 16),
+                  const SizedBox(width: 8),
+                  ShimmerSkeleton(width: scaleF(70), height: scaleF(32), borderRadius: 16),
+                  const SizedBox(width: 8),
+                  ShimmerSkeleton(width: scaleF(70), height: scaleF(32), borderRadius: 16),
+                ],
+              ),
+              SizedBox(height: scaleF(20)),
+              const Divider(height: 1),
+              SizedBox(height: scaleF(16)),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const ShimmerSkeleton(width: 160, height: 18, borderRadius: 3),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            const ShimmerSkeleton(width: 60, height: 14, borderRadius: 10),
+                            const SizedBox(width: 8),
+                            ShimmerSkeleton(width: scaleF(130), height: scaleF(10), borderRadius: 3),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      const Row(
+                        children: [
+                          ShimmerSkeleton(width: 45, height: 14, borderRadius: 3),
+                          SizedBox(width: 4),
+                          ShimmerSkeleton(width: 30, height: 10, borderRadius: 3),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: List.generate(5, (index) => const Padding(
+                          padding: EdgeInsets.only(right: 2),
+                          child: ShimmerSkeleton(width: 14, height: 14, borderRadius: 7),
+                        )),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: scaleF(12)),
+
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const ShimmerSkeleton(width: double.infinity, height: 11, borderRadius: 2),
+                  const SizedBox(height: 4),
+                  const ShimmerSkeleton(width: double.infinity, height: 11, borderRadius: 2),
+                  const SizedBox(height: 4),
+                  ShimmerSkeleton(width: scaleF(180), height: scaleF(11), borderRadius: 2),
+                ],
+              ),
+              SizedBox(height: scaleF(24)),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ShimmerSkeleton(width: scaleF(80), height: scaleF(14), borderRadius: 3),
+                  ShimmerSkeleton(width: scaleF(60), height: scaleF(12), borderRadius: 3),
+                ],
+              ),
+              SizedBox(height: scaleF(12)),
+
+              Row(
+                children: [
+                  ShimmerSkeleton(width: scaleF(46), height: scaleF(46), borderRadius: 10),
+                  SizedBox(width: scaleF(10)),
+                  ShimmerSkeleton(width: scaleF(46), height: scaleF(46), borderRadius: 10),
+                  SizedBox(width: scaleF(10)),
+                  ShimmerSkeleton(width: scaleF(46), height: scaleF(46), borderRadius: 10),
+                  SizedBox(width: scaleF(10)),
+                  ShimmerSkeleton(width: scaleF(46), height: scaleF(46), borderRadius: 10),
+                ],
+              ),
+            ],
+          ),
+        ),
+
+        Container(
+          padding: EdgeInsets.fromLTRB(hPadding, scaleF(12), hPadding, scaleF(16) + MediaQuery.paddingOf(context).bottom),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border(top: BorderSide(color: Colors.black.withOpacity(0.08), width: 1)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ShimmerSkeleton(width: scaleF(60), height: scaleF(10), borderRadius: 2),
+                  const SizedBox(height: 4),
+                  ShimmerSkeleton(width: scaleF(80), height: scaleF(18), borderRadius: 3),
+                ],
+              ),
+              ShimmerSkeleton(width: scaleF(140), height: scaleF(44), borderRadius: 10),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

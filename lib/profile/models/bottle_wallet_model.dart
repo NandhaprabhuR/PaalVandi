@@ -15,4 +15,14 @@ class BottleWalletStats {
 
   /// Deposit refund owed for bottles already returned.
   int get refundBalanceRupees => returnedBottles * depositPerBottleRupees;
+
+  BottleWalletStats copyWith({
+    int? deliveredBottles,
+    int? returnedBottles,
+  }) {
+    return BottleWalletStats(
+      deliveredBottles: deliveredBottles ?? this.deliveredBottles,
+      returnedBottles: returnedBottles ?? this.returnedBottles,
+    );
+  }
 }

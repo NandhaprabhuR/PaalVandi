@@ -13,8 +13,11 @@ import 'detailed_bill_view.dart';
 import 'bottle_wallet_history_view.dart';
 import 'order_history_view.dart';
 import '../../bottomnavigation/views/bottom_navigation_view.dart';
+import '../../core/services/haptic_service.dart';
 
-class CartTabView extends StatelessWidget {
+import '../../core/widgets/shimmer_loading.dart';
+
+class CartTabView extends StatefulWidget {
   const CartTabView({super.key});
 
   static BoxDecoration get _itemDecoration => BoxDecoration(
@@ -26,28 +29,146 @@ class CartTabView extends StatelessWidget {
         ),
       );
 
+  static void _proceedToPay(BuildContext context, CartViewModel cart) {
+    if (cart.items.isEmpty) return;
+    HapticService.mediumImpact();
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => CartScope(
+          store: cart,
+          child: const PaymentSelectionView(),
+        ),
+      ),
+    );
+  }
+
+  @override
+  State<CartTabView> createState() => _CartTabViewState();
+}
+
+class _CartTabViewState extends State<CartTabView> {
+  bool _isLocalLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Simulate high-fidelity skeleton loading delay of 1 second
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      if (mounted) {
+        setState(() {
+          _isLocalLoading = false;
+        });
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final cart = CartScope.of(context);
+    final scaleF = (double val) => ResponsiveHelper.scaledValue(context, val);
+    final fs = (double size) => ResponsiveHelper.scaledFontSize(context, size);
+    final hPadding = ResponsiveHelper.horizontalPadding(context);
 
     return AnimatedBuilder(
       animation: cart,
       builder: (context, _) {
         return Scaffold(
           backgroundColor: CustomersLoginThemeView.scaffoldBackgroundColor,
-          appBar: _cartAppBar(context, cart),
-          body: cart.items.isEmpty
-              ? _emptyBody(context)
-              : Column(
-                  children: [
-                    Expanded(child: _cartList(context, cart)),
-                    _CheckoutBar(cart: cart),
-                  ],
-                ),
+          appBar: widget._cartAppBar(context, cart),
+          body: _isLocalLoading
+              ? _buildCartSkeleton(context, hPadding, scaleF, fs)
+              : (cart.items.isEmpty
+                  ? widget._emptyBody(context)
+                  : Column(
+                      children: [
+                        Expanded(child: widget._cartList(context, cart)),
+                        _CheckoutBar(cart: cart),
+                      ],
+                    )),
         );
       },
     );
   }
+
+  Widget _buildCartSkeleton(
+    BuildContext context,
+    double hPadding,
+    double Function(double) scaleF,
+    double Function(double) fs,
+  ) {
+    return Column(
+      children: [
+        Expanded(
+          child: ListView.separated(
+            padding: EdgeInsets.fromLTRB(hPadding, scaleF(12), hPadding, scaleF(8)),
+            itemCount: 2,
+            separatorBuilder: (_, __) => SizedBox(height: scaleF(10)),
+            itemBuilder: (context, index) {
+              return Container(
+                decoration: CartTabView._itemDecoration,
+                padding: EdgeInsets.symmetric(horizontal: scaleF(10), vertical: scaleF(8)),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ShimmerSkeleton(width: scaleF(140), height: scaleF(14), borderRadius: 3),
+                          SizedBox(height: scaleF(12)),
+                          Row(
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ShimmerSkeleton(width: scaleF(60), height: scaleF(16), borderRadius: 3),
+                                  SizedBox(height: scaleF(6)),
+                                  ShimmerSkeleton(width: scaleF(110), height: scaleF(10), borderRadius: 3),
+                                ],
+                              ),
+                              const Spacer(),
+                              ShimmerSkeleton(width: scaleF(54), height: scaleF(24), borderRadius: 12),
+                              SizedBox(width: scaleF(8)),
+                              ShimmerSkeleton(width: scaleF(68), height: scaleF(24), borderRadius: 12),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: scaleF(8)),
+                    ShimmerSkeleton(width: scaleF(64), height: scaleF(64), borderRadius: 14),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+        Container(
+          padding: EdgeInsets.fromLTRB(hPadding, scaleF(10), hPadding, scaleF(10) + MediaQuery.paddingOf(context).bottom),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border(top: BorderSide(color: CustomersLoginThemeView.borderColor.withValues(alpha: 0.1))),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  ShimmerSkeleton(width: scaleF(80), height: scaleF(12), borderRadius: 3),
+                  ShimmerSkeleton(width: scaleF(100), height: scaleF(16), borderRadius: 3),
+                ],
+              ),
+              SizedBox(height: scaleF(12)),
+              ShimmerSkeleton(width: double.infinity, height: scaleF(44), borderRadius: 12),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+extension on CartTabView {
 
   Widget _emptyBody(BuildContext context) {
     final scaleF = (double val) => ResponsiveHelper.scaledValue(context, val);
@@ -228,19 +349,10 @@ class CartTabView extends StatelessWidget {
       barrierColor: Colors.black54,
       builder: (ctx) => _RemoveItemDialog(productName: name),
     );
-    if (remove == true) cart.removeAt(index);
-  }
-
-  static void _proceedToPay(BuildContext context, CartViewModel cart) {
-    if (cart.items.isEmpty) return;
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => CartScope(
-          store: cart,
-          child: const PaymentSelectionView(),
-        ),
-      ),
-    );
+    if (remove == true) {
+      cart.removeAt(index);
+      HapticService.warning();
+    }
   }
 }
 
@@ -504,7 +616,10 @@ class _DeliveryMethodDropdown extends StatelessWidget {
     final fs = (double size) => ResponsiveHelper.scaledFontSize(context, size);
 
     return PopupMenuButton<DeliveryMethod>(
-      onSelected: onSelected,
+      onSelected: (m) {
+        HapticService.lightImpact();
+        onSelected(m);
+      },
       offset: Offset(0, scaleF(36)),
       elevation: 4,
       color: Colors.white,
@@ -628,7 +743,10 @@ class _VolumeDropdown extends StatelessWidget {
         : [HomeProductItem(quantity: quantity, price: '', priceRupees: 0)];
 
     return PopupMenuButton<HomeProductItem>(
-      onSelected: onSelected,
+      onSelected: (v) {
+        HapticService.lightImpact();
+        onSelected(v);
+      },
       offset: Offset(0, scaleF(32)),
       elevation: 4,
       color: Colors.white,
@@ -752,7 +870,10 @@ class _QuantityStepper extends StatelessWidget {
 
   Widget _stepButton(BuildContext context, IconData icon, double Function(double) scaleF, VoidCallback onTap) {
     return InkWell(
-      onTap: onTap,
+      onTap: () {
+        HapticService.lightImpact();
+        onTap();
+      },
       borderRadius: BorderRadius.circular(18),
       child: Padding(
         padding: EdgeInsets.all(scaleF(5).clamp(4.0, 8.0)),
@@ -813,6 +934,7 @@ class _CheckoutBar extends StatelessWidget {
           SizedBox(height: scaleF(10)),
           OutlinedButton(
             onPressed: () {
+              HapticService.mediumImpact();
               Navigator.of(context).push(
                 MaterialPageRoute<void>(
                   builder: (_) => DetailedBillView(cart: cart),

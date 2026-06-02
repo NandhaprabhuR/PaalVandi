@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import '../../theme/customers_login_themeview.dart';
+import '../../core/services/haptic_service.dart';
 class PaymentSuccessView extends StatefulWidget {
   final bool paidOnline;
   final bool isSubscription;
@@ -37,6 +38,7 @@ class _PaymentSuccessViewState extends State<PaymentSuccessView>
       curve: const Interval(0.2, 1, curve: Curves.easeOut),
     );
     _controller.forward();
+    HapticService.success();
     Future<void>.delayed(const Duration(milliseconds: 2500), () {
       if (mounted) widget.onFinished();
     });

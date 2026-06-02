@@ -21,11 +21,34 @@ import '../../home/views/bulk_booking_view.dart';
 import '../../cart/views/order_history_view.dart';
 import '../../bottomnavigation/views/bottom_navigation_view.dart';
 import 'active_bulk_booking_view.dart';
+import '../../payment/views/payment_history_view.dart';
+import '../../core/services/haptic_service.dart';
+import '../../core/widgets/shimmer_loading.dart';
 
-class ProfileTabView extends StatelessWidget {
+class ProfileTabView extends StatefulWidget {
   final ComplaintsViewModel complaintsViewModel;
 
   const ProfileTabView({super.key, required this.complaintsViewModel});
+
+  @override
+  State<ProfileTabView> createState() => _ProfileTabViewState();
+}
+
+class _ProfileTabViewState extends State<ProfileTabView> {
+  bool _isLocalLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Simulate high-fidelity skeleton loading delay of 1 second (1000ms)
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      if (mounted) {
+        setState(() {
+          _isLocalLoading = false;
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +77,9 @@ class ProfileTabView extends StatelessWidget {
               ),
             ),
           ),
-          body: BlocBuilder<CustomersProfileViewModel, CustomersProfileState>(
+          body: _isLocalLoading
+              ? _buildProfileShimmer(context, hPadding, scaleF, fs)
+              : BlocBuilder<CustomersProfileViewModel, CustomersProfileState>(
             builder: (context, state) {
               final model = state.model;
               final hasName = model.name.isNotEmpty;
@@ -69,9 +94,7 @@ class ProfileTabView extends StatelessWidget {
                   ? '${model.houseNo.isNotEmpty ? '${model.houseNo}, ' : ''}${model.apartmentName.isNotEmpty ? '${model.apartmentName}, ' : ''}${model.street.isNotEmpty ? '${model.street}, ' : ''}Coimbatore - ${model.pincode.isNotEmpty ? model.pincode : '641041'}'
                   : 'B-302, Green Meadows, Vadavalli, Coimbatore - 641041';
 
-              final avatarInitial = displayName.isNotEmpty 
-                  ? displayName[0].toUpperCase() 
-                  : 'N';
+              final emoji = model.profilePhoto.isNotEmpty ? model.profilePhoto : '👩‍🦰';
 
               return ListView(
                 physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
@@ -109,11 +132,9 @@ class ProfileTabView extends StatelessWidget {
                               ),
                               child: Center(
                                 child: Text(
-                                  avatarInitial,
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: fs(22),
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                  emoji,
+                                  style: TextStyle(
+                                    fontSize: fs(28),
                                   ),
                                 ),
                               ),
@@ -294,6 +315,26 @@ class ProfileTabView extends StatelessWidget {
                     },
                   ),
 
+                  // Payment History Menu Tile
+                  _buildMenuTile(
+                    context,
+                    icon: Icons.history_edu_outlined,
+                    title: 'Payment History',
+                    subtitle: 'View premium transaction history & invoices',
+                    scaleF: scaleF,
+                    fs: fs,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => CartScope(
+                            store: cart,
+                            child: const PaymentHistoryView(),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
                   SizedBox(height: scaleF(24)),
 
                   // Subscriptions Label
@@ -412,7 +453,7 @@ class ProfileTabView extends StatelessWidget {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) => RaiseComplaintView(
-                            viewModel: complaintsViewModel,
+                            viewModel: widget.complaintsViewModel,
                           ),
                         ),
                       );
@@ -420,6 +461,107 @@ class ProfileTabView extends StatelessWidget {
                   ),
 
                   SizedBox(height: scaleF(24)),
+
+                  // Preferences Label
+                  Text(
+                    'Preferences',
+                    style: GoogleFonts.montserrat(
+                      fontSize: fs(14),
+                      fontWeight: FontWeight.bold,
+                      color: CustomersLoginThemeView.sectionHeadingRed,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  SizedBox(height: scaleF(10)),
+                  Container(
+                    margin: EdgeInsets.only(bottom: scaleF(20)),
+                    decoration: BoxDecoration(
+                      color: CustomersLoginThemeView.cardBackgroundColor,
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: Colors.black,
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      children: [
+                        _buildPreferenceSwitch(
+                          context,
+                          title: 'Haptic Feedback',
+                          subtitle: 'Feel subtle vibrations while using the app',
+                          value: model.enableHapticFeedback,
+                          scaleF: scaleF,
+                          fs: fs,
+                          onChanged: (val) {
+                            context.read<CustomersProfileViewModel>().add(
+                              ProfileFieldChanged(enableHapticFeedback: val),
+                            );
+                            HapticService.lightImpact();
+                          },
+                        ),
+                        const Divider(color: Colors.black, height: 1, thickness: 0.8),
+                        _buildPreferenceSwitch(
+                          context,
+                          title: 'Push Notifications',
+                          subtitle: 'Receive general push notifications',
+                          value: model.enablePushNotification,
+                          scaleF: scaleF,
+                          fs: fs,
+                          onChanged: (val) {
+                            context.read<CustomersProfileViewModel>().add(
+                              ProfileFieldChanged(enablePushNotification: val),
+                            );
+                            HapticService.lightImpact();
+                          },
+                        ),
+                        const Divider(color: Colors.black, height: 1, thickness: 0.8),
+                        _buildPreferenceSwitch(
+                          context,
+                          title: 'Order Updates',
+                          subtitle: 'Instant alerts on your deliveries',
+                          value: model.enableOrderUpdates,
+                          scaleF: scaleF,
+                          fs: fs,
+                          onChanged: (val) {
+                            context.read<CustomersProfileViewModel>().add(
+                              ProfileFieldChanged(enableOrderUpdates: val),
+                            );
+                            HapticService.lightImpact();
+                          },
+                        ),
+                        const Divider(color: Colors.black, height: 1, thickness: 0.8),
+                        _buildPreferenceSwitch(
+                          context,
+                          title: 'Subscription Reminders',
+                          subtitle: 'Upcoming renewal reminders and status',
+                          value: model.enableSubscriptionReminders,
+                          scaleF: scaleF,
+                          fs: fs,
+                          onChanged: (val) {
+                            context.read<CustomersProfileViewModel>().add(
+                              ProfileFieldChanged(enableSubscriptionReminders: val),
+                            );
+                            HapticService.lightImpact();
+                          },
+                        ),
+                        const Divider(color: Colors.black, height: 1, thickness: 0.8),
+                        _buildPreferenceSwitch(
+                          context,
+                          title: 'Promotional Offers',
+                          subtitle: 'Get alerts on exclusive organic deals',
+                          value: model.enablePromotionalOffers,
+                          scaleF: scaleF,
+                          fs: fs,
+                          onChanged: (val) {
+                            context.read<CustomersProfileViewModel>().add(
+                              ProfileFieldChanged(enablePromotionalOffers: val),
+                            );
+                            HapticService.lightImpact();
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
 
                   // Menu Settings & Actions Label
                   Text(
@@ -812,5 +954,193 @@ class ProfileTabView extends StatelessWidget {
         context.goPersist('/login');
       }
     }
+  }
+
+  Widget _buildPreferenceSwitch(
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required bool value,
+    required double Function(double) scaleF,
+    required double Function(double) fs,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: scaleF(16), vertical: scaleF(10)),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.montserrat(
+                    fontSize: fs(13),
+                    fontWeight: FontWeight.bold,
+                    color: CustomersLoginThemeView.textDark,
+                  ),
+                ),
+                if (subtitle.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.montserrat(
+                      fontSize: fs(11),
+                      fontWeight: FontWeight.w500,
+                      color: CustomersLoginThemeView.textGrey,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          Switch(
+            value: value,
+            activeColor: CustomersLoginThemeView.primaryBlue,
+            activeTrackColor: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.2),
+            inactiveThumbColor: Colors.grey.shade400,
+            inactiveTrackColor: Colors.grey.shade200,
+            onChanged: onChanged,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProfileShimmer(
+    BuildContext context,
+    double hPadding,
+    double Function(double) scaleF,
+    double Function(double) fs,
+  ) {
+    return ListView(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.fromLTRB(hPadding, scaleF(12), hPadding, scaleF(24)),
+      children: [
+        // 1. User Profile Details Card Shimmer
+        Container(
+          padding: EdgeInsets.all(scaleF(16)),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.black.withValues(alpha: 0.1), width: 1),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  ShimmerSkeleton(
+                    width: scaleF(54),
+                    height: scaleF(54),
+                    borderRadius: 27,
+                  ),
+                  SizedBox(width: scaleF(14)),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ShimmerSkeleton(width: scaleF(120), height: scaleF(16), borderRadius: 3),
+                        SizedBox(height: scaleF(6)),
+                        ShimmerSkeleton(width: scaleF(80), height: scaleF(12), borderRadius: 3),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              Divider(
+                color: CustomersLoginThemeView.borderColor.withValues(alpha: 0.2),
+                height: scaleF(24),
+                thickness: 1,
+              ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ShimmerSkeleton(width: scaleF(20), height: scaleF(20), borderRadius: 4),
+                  SizedBox(width: scaleF(10)),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ShimmerSkeleton(width: scaleF(100), height: scaleF(12), borderRadius: 3),
+                        SizedBox(height: scaleF(6)),
+                        ShimmerSkeleton(width: scaleF(220), height: scaleF(10), borderRadius: 3),
+                        SizedBox(height: scaleF(4)),
+                        ShimmerSkeleton(width: scaleF(150), height: scaleF(10), borderRadius: 3),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: scaleF(24)),
+
+        // 2. Your Activity Label
+        Row(
+          children: [
+            ShimmerSkeleton(width: scaleF(100), height: scaleF(14), borderRadius: 3),
+          ],
+        ),
+        SizedBox(height: scaleF(10)),
+
+        // 3. Activity Tiles
+        _buildShimmerTile(scaleF),
+        _buildShimmerTile(scaleF),
+        _buildShimmerTile(scaleF),
+        _buildShimmerTile(scaleF),
+        
+        SizedBox(height: scaleF(16)),
+        
+        // 4. Subscriptions Label
+        Row(
+          children: [
+            ShimmerSkeleton(width: scaleF(120), height: scaleF(14), borderRadius: 3),
+          ],
+        ),
+        SizedBox(height: scaleF(10)),
+        
+        _buildShimmerTile(scaleF),
+      ],
+    );
+  }
+
+  Widget _buildShimmerTile(double Function(double) scaleF) {
+    return Container(
+      margin: EdgeInsets.only(bottom: scaleF(10)),
+      padding: EdgeInsets.symmetric(horizontal: scaleF(16), vertical: scaleF(14)),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.1), width: 1),
+      ),
+      child: Row(
+        children: [
+          ShimmerSkeleton(
+            width: scaleF(36),
+            height: scaleF(36),
+            borderRadius: 18,
+          ),
+          SizedBox(width: scaleF(14)),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ShimmerSkeleton(width: scaleF(110), height: scaleF(12), borderRadius: 3),
+                SizedBox(height: scaleF(6)),
+                ShimmerSkeleton(width: scaleF(180), height: scaleF(10), borderRadius: 3),
+              ],
+            ),
+          ),
+          ShimmerSkeleton(
+            width: scaleF(20),
+            height: scaleF(20),
+            borderRadius: 10,
+          ),
+        ],
+      ),
+    );
   }
 }

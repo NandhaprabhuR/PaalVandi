@@ -23,6 +23,20 @@ class _CustomersProfileViewState extends State<CustomersProfileView> {
   final TextEditingController _streetController = TextEditingController();
   final TextEditingController _pincodeController = TextEditingController();
   final TextEditingController _referralController = TextEditingController();
+  final TextEditingController _emergencyContactController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    final model = context.read<CustomersProfileViewModel>().state.model;
+    _nameController.text = model.name;
+    _houseNoController.text = model.houseNo;
+    _apartmentController.text = model.apartmentName;
+    _streetController.text = model.street;
+    _pincodeController.text = model.pincode;
+    _referralController.text = model.referralCode;
+    _emergencyContactController.text = model.emergencyContact;
+  }
 
   @override
   void dispose() {
@@ -32,6 +46,7 @@ class _CustomersProfileViewState extends State<CustomersProfileView> {
     _streetController.dispose();
     _pincodeController.dispose();
     _referralController.dispose();
+    _emergencyContactController.dispose();
     super.dispose();
   }
 
@@ -159,6 +174,62 @@ class _CustomersProfileViewState extends State<CustomersProfileView> {
                       ),
                     ),
                     SizedBox(height: scaleF(20)),
+                    Center(
+                      child: Column(
+                        children: [
+                          Container(
+                            width: scaleF(70),
+                            height: scaleF(70),
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.1),
+                              border: Border.all(color: CustomersLoginThemeView.primaryBlue, width: 2),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              state.model.profilePhoto.isNotEmpty ? state.model.profilePhoto : '👩‍🦰',
+                              style: TextStyle(fontSize: fs(34)),
+                            ),
+                          ),
+                          SizedBox(height: scaleF(8)),
+                          Text(
+                            'Select Profile Avatar',
+                            style: GoogleFonts.montserrat(
+                              fontSize: fs(12),
+                              fontWeight: FontWeight.bold,
+                              color: CustomersLoginThemeView.textDark,
+                            ),
+                          ),
+                          SizedBox(height: scaleF(8)),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const ['👩‍🦰', '🧔', '👳', '👱‍♀️', '🧑‍⚕️', '👨‍🎓'].map((emoji) {
+                              final isSelected = state.model.profilePhoto == emoji;
+                              return GestureDetector(
+                                onTap: () {
+                                  context.read<CustomersProfileViewModel>().add(
+                                    ProfileFieldChanged(profilePhoto: emoji),
+                                  );
+                                },
+                                child: Container(
+                                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: isSelected ? CustomersLoginThemeView.primaryBlue : Colors.transparent,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: Text(emoji, style: TextStyle(fontSize: 22)),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: scaleF(24)),
                     Text(
                       'Personal Info',
                       style: GoogleFonts.montserrat(
@@ -298,6 +369,110 @@ class _CustomersProfileViewState extends State<CustomersProfileView> {
                     ),
                     SizedBox(height: scaleF(24)),
                     Text(
+                      'Delivery Preferences',
+                      style: GoogleFonts.montserrat(
+                        fontSize: fs(16),
+                        fontWeight: FontWeight.bold,
+                        color: CustomersLoginThemeView.sectionHeadingRed,
+                      ),
+                    ),
+                    SizedBox(height: scaleF(12)),
+                    // Preferred Delivery Time Slot Dropdown
+                    Container(
+                      margin: EdgeInsets.only(bottom: scaleF(16)),
+                      padding: EdgeInsets.symmetric(horizontal: scaleF(16)),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.black, width: 1.0),
+                        borderRadius: BorderRadius.circular(12),
+                        color: Colors.white,
+                      ),
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: state.model.preferredDeliveryTime,
+                          isExpanded: true,
+                          style: GoogleFonts.montserrat(
+                            fontSize: fs(14),
+                            fontWeight: FontWeight.w500,
+                            color: CustomersLoginThemeView.textDark,
+                          ),
+                          items: const [
+                            DropdownMenuItem(
+                              value: 'Morning (6:00 AM – 8:00 AM)',
+                              child: Text('Morning (6:00 AM – 8:00 AM)'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'Evening (6:00 PM – 8:00 PM)',
+                              child: Text('Evening (6:00 PM – 8:00 PM)'),
+                            ),
+                          ],
+                          onChanged: (val) {
+                            if (val != null) {
+                              context.read<CustomersProfileViewModel>().add(
+                                    ProfileFieldChanged(preferredDeliveryTime: val),
+                                  );
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                    // Emergency Contact Number
+                    _buildTextField(
+                      context: context,
+                      hint: 'Emergency Contact (Optional)',
+                      controller: _emergencyContactController,
+                      keyboardType: TextInputType.phone,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(10),
+                      ],
+                      scaleF: scaleF,
+                      fs: fs,
+                      onChanged: (value) => context.read<CustomersProfileViewModel>().add(ProfileFieldChanged(emergencyContact: value)),
+                    ),
+                    SizedBox(height: scaleF(16)),
+
+                    // Notification Settings Toggles
+                    Text(
+                      'Notification Preferences',
+                      style: GoogleFonts.montserrat(
+                        fontSize: fs(16),
+                        fontWeight: FontWeight.bold,
+                        color: CustomersLoginThemeView.sectionHeadingRed,
+                      ),
+                    ),
+                    SizedBox(height: scaleF(8)),
+                    _buildSwitchTile(
+                      label: 'Push Notifications',
+                      value: state.model.enablePushNotification,
+                      onChanged: (val) {
+                        context.read<CustomersProfileViewModel>().add(
+                              ProfileFieldChanged(enablePushNotification: val),
+                            );
+                      },
+                      fs: fs,
+                    ),
+                    _buildSwitchTile(
+                      label: 'WhatsApp Alerts',
+                      value: state.model.enableWhatsAppNotification,
+                      onChanged: (val) {
+                        context.read<CustomersProfileViewModel>().add(
+                              ProfileFieldChanged(enableWhatsAppNotification: val),
+                            );
+                      },
+                      fs: fs,
+                    ),
+                    _buildSwitchTile(
+                      label: 'SMS Notifications',
+                      value: state.model.enableSmsNotification,
+                      onChanged: (val) {
+                        context.read<CustomersProfileViewModel>().add(
+                              ProfileFieldChanged(enableSmsNotification: val),
+                            );
+                      },
+                      fs: fs,
+                    ),
+                    SizedBox(height: scaleF(24)),
+                    Text(
                       'Referral',
                       style: GoogleFonts.montserrat(
                         fontSize: fs(16),
@@ -355,6 +530,38 @@ class _CustomersProfileViewState extends State<CustomersProfileView> {
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildSwitchTile({
+    required String label,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+    required double Function(double) fs,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: CustomersLoginThemeView.cardBackgroundColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.black, width: 1.0),
+      ),
+      child: SwitchListTile(
+        title: Text(
+          label,
+          style: GoogleFonts.montserrat(
+            fontSize: fs(13),
+            fontWeight: FontWeight.w600,
+            color: CustomersLoginThemeView.textDark,
+          ),
+        ),
+        value: value,
+        onChanged: onChanged,
+        activeColor: CustomersLoginThemeView.primaryBlue,
+        activeTrackColor: CustomersLoginThemeView.primaryBlue.withValues(alpha: 0.15),
+        inactiveThumbColor: Colors.grey.shade400,
+        inactiveTrackColor: Colors.grey.shade200,
       ),
     );
   }

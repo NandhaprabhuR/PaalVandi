@@ -10,6 +10,16 @@ class CustomersProfileModel extends Equatable {
   final String referralCode;
   final String fetchedLocation;
   final String deliveryPreference;
+  final String profilePhoto;
+  final String preferredDeliveryTime;
+  final bool enablePushNotification;
+  final bool enableWhatsAppNotification;
+  final bool enableSmsNotification;
+  final String emergencyContact;
+  final bool enableHapticFeedback;
+  final bool enableOrderUpdates;
+  final bool enableSubscriptionReminders;
+  final bool enablePromotionalOffers;
 
   const CustomersProfileModel({
     this.name = '',
@@ -21,6 +31,16 @@ class CustomersProfileModel extends Equatable {
     this.referralCode = '',
     this.fetchedLocation = '',
     this.deliveryPreference = 'Deliver Here (Primary)',
+    this.profilePhoto = '👩‍🦰',
+    this.preferredDeliveryTime = 'Morning (6:00 AM – 8:00 AM)',
+    this.enablePushNotification = true,
+    this.enableWhatsAppNotification = true,
+    this.enableSmsNotification = false,
+    this.emergencyContact = '',
+    this.enableHapticFeedback = true,
+    this.enableOrderUpdates = true,
+    this.enableSubscriptionReminders = true,
+    this.enablePromotionalOffers = true,
   });
 
   CustomersProfileModel copyWith({
@@ -33,6 +53,16 @@ class CustomersProfileModel extends Equatable {
     String? referralCode,
     String? fetchedLocation,
     String? deliveryPreference,
+    String? profilePhoto,
+    String? preferredDeliveryTime,
+    bool? enablePushNotification,
+    bool? enableWhatsAppNotification,
+    bool? enableSmsNotification,
+    String? emergencyContact,
+    bool? enableHapticFeedback,
+    bool? enableOrderUpdates,
+    bool? enableSubscriptionReminders,
+    bool? enablePromotionalOffers,
   }) {
     return CustomersProfileModel(
       name: name ?? this.name,
@@ -44,6 +74,16 @@ class CustomersProfileModel extends Equatable {
       referralCode: referralCode ?? this.referralCode,
       fetchedLocation: fetchedLocation ?? this.fetchedLocation,
       deliveryPreference: deliveryPreference ?? this.deliveryPreference,
+      profilePhoto: profilePhoto ?? this.profilePhoto,
+      preferredDeliveryTime: preferredDeliveryTime ?? this.preferredDeliveryTime,
+      enablePushNotification: enablePushNotification ?? this.enablePushNotification,
+      enableWhatsAppNotification: enableWhatsAppNotification ?? this.enableWhatsAppNotification,
+      enableSmsNotification: enableSmsNotification ?? this.enableSmsNotification,
+      emergencyContact: emergencyContact ?? this.emergencyContact,
+      enableHapticFeedback: enableHapticFeedback ?? this.enableHapticFeedback,
+      enableOrderUpdates: enableOrderUpdates ?? this.enableOrderUpdates,
+      enableSubscriptionReminders: enableSubscriptionReminders ?? this.enableSubscriptionReminders,
+      enablePromotionalOffers: enablePromotionalOffers ?? this.enablePromotionalOffers,
     );
   }
 
@@ -58,5 +98,15 @@ class CustomersProfileModel extends Equatable {
         referralCode,
         fetchedLocation,
         deliveryPreference,
+        profilePhoto,
+        preferredDeliveryTime,
+        enablePushNotification,
+        enableWhatsAppNotification,
+        enableSmsNotification,
+        emergencyContact,
+        enableHapticFeedback,
+        enableOrderUpdates,
+        enableSubscriptionReminders,
+        enablePromotionalOffers,
       ];
 }

@@ -9,8 +9,30 @@ import 'subscription_bottom_sheets.dart';
 import 'your_subscriptions_view.dart';
 import '../../core/widgets/paalvandi_confirm_dialog.dart';
 
-class SubscriptionsTabView extends StatelessWidget {
+import '../../core/widgets/shimmer_loading.dart';
+
+class SubscriptionsTabView extends StatefulWidget {
   const SubscriptionsTabView({super.key});
+
+  @override
+  State<SubscriptionsTabView> createState() => _SubscriptionsTabViewState();
+}
+
+class _SubscriptionsTabViewState extends State<SubscriptionsTabView> {
+  bool _isLocalLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    // Simulate high-fidelity skeleton loading delay of 1 second
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      if (mounted) {
+        setState(() {
+          _isLocalLoading = false;
+        });
+      }
+    });
+  }
 
   void _openSheet(BuildContext context, SubscriptionPlan plan) {
     final store = SubscriptionsScope.of(context);
@@ -90,13 +112,15 @@ class SubscriptionsTabView extends StatelessWidget {
               ),
             ],
           ),
-          body: ListView.builder(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
-            itemCount: SubscriptionPlans.all.length +
-                1 +
-                (store.hasBookings ? 1 : 0),
-            itemBuilder: (context, index) {
+          body: _isLocalLoading
+              ? _buildSubscriptionsSkeleton(context)
+              : ListView.builder(
+                  physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                  itemCount: SubscriptionPlans.all.length +
+                      1 +
+                      (store.hasBookings ? 1 : 0),
+                  itemBuilder: (context, index) {
               if (index == 0) {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
@@ -172,6 +196,67 @@ class SubscriptionsTabView extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildSubscriptionsSkeleton(BuildContext context) {
+    return ListView(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(bottom: 12),
+          child: Align(
+            alignment: Alignment.center,
+            child: ShimmerSkeleton(
+              width: 240,
+              height: 14,
+              borderRadius: 3,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...List.generate(2, (index) {
+          return Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: Colors.black12, width: 1),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    ShimmerSkeleton(width: 140, height: 16, borderRadius: 3),
+                    ShimmerSkeleton(width: 40, height: 16, borderRadius: 8),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                const ShimmerSkeleton(width: double.infinity, height: 12, borderRadius: 3),
+                const SizedBox(height: 6),
+                const ShimmerSkeleton(width: 200, height: 12, borderRadius: 3),
+                const SizedBox(height: 10),
+                const ShimmerSkeleton(width: 120, height: 11, borderRadius: 3),
+                const SizedBox(height: 12),
+                const Row(
+                  children: [
+                    ShimmerSkeleton(width: 90, height: 22, borderRadius: 12),
+                    SizedBox(width: 6),
+                    ShimmerSkeleton(width: 90, height: 22, borderRadius: 12),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                const ShimmerSkeleton(width: double.infinity, height: 36, borderRadius: 10),
+              ],
+            ),
+          );
+        }),
+      ],
     );
   }
 }

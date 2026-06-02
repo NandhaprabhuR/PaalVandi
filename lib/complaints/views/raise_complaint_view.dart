@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import '../../theme/customers_login_themeview.dart';
 import '../../core/widgets/responsive_helper.dart';
 import '../viewmodels/complaints_viewmodel.dart';
-import '../models/complaint_model.dart';
+import '../../core/widgets/shimmer_loading.dart';
 
 class RaiseComplaintView extends StatefulWidget {
   final ComplaintsViewModel viewModel;
@@ -34,10 +34,19 @@ class _RaiseComplaintViewState extends State<RaiseComplaintView>
   bool _hasVoiceAttachment = false;
   bool _isPlayingVoice = false;
 
+  bool _isLocalLoading = true;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      if (mounted) {
+        setState(() {
+          _isLocalLoading = false;
+        });
+      }
+    });
   }
 
   @override
@@ -287,9 +296,11 @@ class _RaiseComplaintViewState extends State<RaiseComplaintView>
               ],
             ),
           ),
-          body: TabBarView(
-            controller: _tabController,
-            physics: const BouncingScrollPhysics(),
+          body: _isLocalLoading
+              ? _buildComplaintSkeleton(context, hPadding, scaleF, fs)
+              : TabBarView(
+                  controller: _tabController,
+                  physics: const BouncingScrollPhysics(),
             children: [
               // 1. Raise Complaint Tab
               SingleChildScrollView(
@@ -740,6 +751,100 @@ class _RaiseComplaintViewState extends State<RaiseComplaintView>
           ),
         );
       },
+    );
+  }
+
+  Widget _buildComplaintSkeleton(
+    BuildContext context,
+    double hPadding,
+    double Function(double) scaleF,
+    double Function(double) fs,
+  ) {
+    return ListView(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.fromLTRB(hPadding, scaleF(16), hPadding, scaleF(24)),
+      children: [
+        // Top Support card
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: scaleF(14), vertical: scaleF(12)),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.black12, width: 1.0),
+          ),
+          child: Row(
+            children: [
+              ShimmerSkeleton(width: scaleF(20), height: scaleF(20), borderRadius: 10),
+              SizedBox(width: scaleF(10)),
+              Expanded(
+                child: ShimmerSkeleton(width: scaleF(180), height: scaleF(12), borderRadius: 3),
+              ),
+              ShimmerSkeleton(width: scaleF(22), height: scaleF(22), borderRadius: 11),
+            ],
+          ),
+        ),
+        SizedBox(height: scaleF(20)),
+
+        // Category header
+        const ShimmerSkeleton(width: 190, height: 14, borderRadius: 3),
+        SizedBox(height: scaleF(6)),
+        const ShimmerSkeleton(width: 240, height: 11, borderRadius: 3),
+        SizedBox(height: scaleF(14)),
+
+        // Chips list
+        Wrap(
+          spacing: scaleF(8),
+          runSpacing: scaleF(8),
+          children: List.generate(5, (index) {
+            final widths = [90.0, 110.0, 85.0, 100.0, 70.0];
+            return ShimmerSkeleton(width: scaleF(widths[index]), height: scaleF(32), borderRadius: 10);
+          }),
+        ),
+        SizedBox(height: scaleF(24)),
+
+        // Detailed explanation header
+        const ShimmerSkeleton(width: 210, height: 14, borderRadius: 3),
+        SizedBox(height: scaleF(10)),
+
+        // Input card
+        Container(
+          padding: EdgeInsets.all(scaleF(14)),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Colors.black12, width: 1.2),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ShimmerSkeleton(width: double.infinity, height: scaleF(12), borderRadius: 2),
+              SizedBox(height: scaleF(6)),
+              ShimmerSkeleton(width: double.infinity, height: scaleF(12), borderRadius: 2),
+              SizedBox(height: scaleF(6)),
+              ShimmerSkeleton(width: scaleF(150), height: scaleF(12), borderRadius: 2),
+              SizedBox(height: scaleF(20)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  ShimmerSkeleton(width: scaleF(24), height: scaleF(24), borderRadius: 12),
+                ],
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: scaleF(14)),
+
+        // Voice record button
+        Row(
+          children: [
+            ShimmerSkeleton(width: scaleF(220), height: scaleF(36), borderRadius: 10),
+          ],
+        ),
+        SizedBox(height: scaleF(32)),
+
+        // Submit button
+        ShimmerSkeleton(width: double.infinity, height: scaleF(46), borderRadius: 12),
+      ],
     );
   }
 }

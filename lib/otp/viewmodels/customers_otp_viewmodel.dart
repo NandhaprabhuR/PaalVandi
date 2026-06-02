@@ -56,6 +56,7 @@ class OtpFailure extends CustomersOtpState {
 
 // ViewModel (BLoC)
 class CustomersOtpViewModel extends Bloc<CustomersOtpEvent, CustomersOtpState> {
+  // ignore: unused_field
   final dynamic _supabase;
 
   CustomersOtpViewModel(this._supabase) : super(const OtpInitial(CustomersOtpModel())) {

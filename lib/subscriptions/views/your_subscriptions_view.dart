@@ -17,6 +17,7 @@ import 'cancel_subscription_view.dart';
 import 'delivery_calendar_view.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../profile/viewmodels/customers_profile_viewmodel.dart';
+import '../../core/services/haptic_service.dart';
 
 class YourSubscriptionsView extends StatelessWidget {
   const YourSubscriptionsView({super.key});
@@ -37,6 +38,16 @@ class YourSubscriptionsView extends StatelessWidget {
   }
 
   Future<void> _downloadReceipt(BuildContext context, BookedSubscription booking) async {
+    HapticService.lightImpact();
+    String cleanText(String text) {
+      return text
+          .replaceAll('•', '-')
+          .replaceAll('–', '-')
+          .replaceAll('—', '-')
+          .replaceAll('→', '->')
+          .replaceAll('₹', 'Rs.');
+    }
+
     final pdf = pw.Document();
 
     pdf.addPage(
@@ -100,7 +111,7 @@ class YourSubscriptionsView extends StatelessWidget {
                 pw.SizedBox(height: 20),
 
                 pw.Text(
-                  booking.planTitle,
+                  cleanText(booking.planTitle),
                   style: pw.TextStyle(
                     fontSize: 20,
                     fontWeight: pw.FontWeight.bold,
@@ -135,7 +146,7 @@ class YourSubscriptionsView extends StatelessWidget {
                     children: booking.configSummary.map((line) {
                       return pw.Padding(
                         padding: const pw.EdgeInsets.only(bottom: 2),
-                        child: pw.Text('• $line', style: const pw.TextStyle(fontSize: 10)),
+                        child: pw.Text(cleanText('- $line'), style: const pw.TextStyle(fontSize: 10)),
                       );
                     }).toList(),
                   ),
@@ -150,7 +161,7 @@ class YourSubscriptionsView extends StatelessWidget {
                 ...booking.rateLines.map((line) {
                   return pw.Padding(
                     padding: const pw.EdgeInsets.only(bottom: 2),
-                    child: pw.Text('• $line', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey800)),
+                    child: pw.Text(cleanText('- $line'), style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey800)),
                   );
                 }),
                 pw.SizedBox(height: 20),
@@ -204,6 +215,7 @@ class YourSubscriptionsView extends StatelessWidget {
 
   void _payBalanceAmount(
       BuildContext context, SubscriptionsBookingStore store, BookedSubscription booking) {
+    HapticService.mediumImpact();
     final quote = SubscriptionQuote(
       planTitle: booking.planTitle,
       backgroundColor: Colors.white,
@@ -237,6 +249,7 @@ class YourSubscriptionsView extends StatelessWidget {
 
   void _cancelSubscription(
       BuildContext context, SubscriptionsBookingStore store, BookedSubscription booking) {
+    HapticService.mediumImpact();
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => SubscriptionsScope(
@@ -249,12 +262,99 @@ class YourSubscriptionsView extends StatelessWidget {
 
   void _modifySubscription(
       BuildContext context, SubscriptionsBookingStore store, BookedSubscription booking) {
+    HapticService.lightImpact();
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => SubscriptionsScope(
           store: store,
           child: ModifySubscriptionView(booking: booking),
         ),
+      ),
+    );
+  }
+
+  Color _getStatusBadgeBgColor(String status) {
+    switch (status) {
+      case 'Active':
+        return const Color(0xFF2E7D32).withValues(alpha: 0.1);
+      case 'Paused':
+        return const Color(0xFFE65100).withValues(alpha: 0.1);
+      case 'Expiring Soon':
+        return const Color(0xFFF57F17).withValues(alpha: 0.1);
+      case 'Cancelled':
+        return const Color(0xFFC62828).withValues(alpha: 0.1);
+      default:
+        return const Color(0xFF2E7D32).withValues(alpha: 0.1);
+    }
+  }
+
+  Color _getStatusBadgeTextColor(String status) {
+    switch (status) {
+      case 'Active':
+        return const Color(0xFF2E7D32);
+      case 'Paused':
+        return const Color(0xFFE65100);
+      case 'Expiring Soon':
+        return const Color(0xFFF57F17);
+      case 'Cancelled':
+        return const Color(0xFFC62828);
+      default:
+        return const Color(0xFF2E7D32);
+    }
+  }
+
+  Future<void> _pauseSubscription(
+      BuildContext context, SubscriptionsBookingStore store, BookedSubscription booking) async {
+    final start = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().add(const Duration(days: 1)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 90)),
+      helpText: 'Select Pause Start Date',
+    );
+    if (start == null) return;
+    HapticService.selection();
+
+    if (!context.mounted) return;
+    final end = await showDatePicker(
+      context: context,
+      initialDate: start.add(const Duration(days: 5)),
+      firstDate: start.add(const Duration(days: 1)),
+      lastDate: start.add(const Duration(days: 90)),
+      helpText: 'Select Pause End Date',
+    );
+    if (end == null) return;
+    HapticService.selection();
+
+    HapticService.mediumImpact();
+    store.pauseBooking(booking, start, end);
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Subscription paused from ${DateFormat('dd MMM').format(start)} to ${DateFormat('dd MMM').format(end)}',
+            style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+          ),
+          backgroundColor: CustomersLoginThemeView.primaryBlue,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  void _resumeSubscription(
+      BuildContext context, SubscriptionsBookingStore store, BookedSubscription booking) {
+    HapticService.mediumImpact();
+    store.resumeBooking(booking);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Subscription resumed successfully!',
+          style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+        ),
+        backgroundColor: Colors.green.shade800,
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -270,6 +370,7 @@ class YourSubscriptionsView extends StatelessWidget {
     );
 
     if (confirmed == true && context.mounted) {
+      HapticService.mediumImpact();
       final renewedBooking = BookedSubscription(
         planTitle: booking.planTitle,
         bookedAt: DateTime.now().add(const Duration(days: 30)),
@@ -428,7 +529,6 @@ class YourSubscriptionsView extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 4),
-                          // Green Active Badge & Date Row
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -443,20 +543,47 @@ class YourSubscriptionsView extends StatelessWidget {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF2E7D32).withValues(alpha: 0.1),
+                                  color: _getStatusBadgeBgColor(booking.status),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
-                                  'ACTIVE',
+                                  booking.status.toUpperCase(),
                                   style: GoogleFonts.montserrat(
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
-                                    color: const Color(0xFF2E7D32),
+                                    color: _getStatusBadgeTextColor(booking.status),
                                   ),
                                 ),
                               ),
                             ],
                           ),
+                          if (booking.status == 'Paused' && booking.pauseStartDate != null && booking.pauseEndDate != null) ...[
+                            const SizedBox(height: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFF3E0),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: const Color(0xFFFFB74D), width: 0.5),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Text('⏸️', style: TextStyle(fontSize: 12)),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      'Paused: ${DateFormat('dd MMM yyyy').format(booking.pauseStartDate!)} to ${DateFormat('dd MMM yyyy').format(booking.pauseEndDate!)}',
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.bold,
+                                        color: const Color(0xFFE65100),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                           if (booking.configSummary.isNotEmpty) ...[
                             const SizedBox(height: 10),
                             ...booking.configSummary.map(
@@ -578,20 +705,27 @@ class YourSubscriptionsView extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          
-                          // Option buttons at the bottom of card
                           Row(
                             children: [
                               Expanded(
                                 child: SizedBox(
                                   height: 38,
                                   child: OutlinedButton.icon(
-                                    onPressed: () => _modifySubscription(context, store, booking),
-                                    icon: const Icon(Icons.edit_note, size: 18),
+                                    onPressed: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (_) => SubscriptionsScope(
+                                            store: store,
+                                            child: DeliveryCalendarView(booking: booking),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.calendar_month, size: 16),
                                     label: Text(
-                                      'Modify',
+                                      'View Calendar',
                                       style: GoogleFonts.montserrat(
-                                        fontSize: 12,
+                                        fontSize: 11,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
@@ -613,19 +747,19 @@ class YourSubscriptionsView extends StatelessWidget {
                                 child: SizedBox(
                                   height: 38,
                                   child: OutlinedButton.icon(
-                                    onPressed: () => _cancelSubscription(context, store, booking),
-                                    icon: const Icon(Icons.cancel_outlined, size: 16),
+                                    onPressed: () => _downloadReceipt(context, booking),
+                                    icon: const Icon(Icons.download_rounded, size: 16),
                                     label: Text(
-                                      'Cancel',
+                                      'Download Receipt',
                                       style: GoogleFonts.montserrat(
-                                        fontSize: 12,
+                                        fontSize: 11,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                     style: OutlinedButton.styleFrom(
-                                      foregroundColor: CustomersLoginThemeView.sectionHeadingRed,
+                                      foregroundColor: CustomersLoginThemeView.primaryBlue,
                                       side: const BorderSide(
-                                        color: CustomersLoginThemeView.sectionHeadingRed,
+                                        color: CustomersLoginThemeView.primaryBlue,
                                         width: 1.2,
                                       ),
                                       shape: RoundedRectangleBorder(
@@ -637,34 +771,162 @@ class YourSubscriptionsView extends StatelessWidget {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 12),
                           
-                          // Pay Balance or Renew Buttons
-                          if (!booking.isFullyPaid && booking.balanceOnFullPaymentRupees > 0) ...[
-                            SizedBox(
-                              width: double.infinity,
-                              height: 38,
-                              child: ElevatedButton.icon(
-                                onPressed: () => _payBalanceAmount(context, store, booking),
-                                icon: const Icon(Icons.payments_outlined, size: 18),
-                                label: Text(
-                                  'Pay Balance (₹${booking.balanceOnFullPaymentRupees})',
-                                  style: GoogleFonts.montserrat(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.bold,
+                          // Option buttons at the bottom of card
+                          if (booking.status != 'Cancelled') ...[
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: SizedBox(
+                                    height: 38,
+                                    child: OutlinedButton.icon(
+                                      onPressed: () => _modifySubscription(context, store, booking),
+                                      icon: const Icon(Icons.edit_note, size: 18),
+                                      label: Text(
+                                        'Modify',
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: CustomersLoginThemeView.primaryBlue,
+                                        side: const BorderSide(
+                                          color: CustomersLoginThemeView.primaryBlue,
+                                          width: 1.2,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                    ),
                                   ),
                                 ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: CustomersLoginThemeView.sectionHeadingRed,
-                                  foregroundColor: Colors.white,
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: SizedBox(
+                                    height: 38,
+                                    child: OutlinedButton.icon(
+                                      onPressed: () {
+                                        if (booking.status == 'Paused') {
+                                          _resumeSubscription(context, store, booking);
+                                        } else {
+                                          _pauseSubscription(context, store, booking);
+                                        }
+                                      },
+                                      icon: Icon(
+                                        booking.status == 'Paused'
+                                            ? Icons.play_arrow_outlined
+                                            : Icons.pause_circle_outline,
+                                        size: 16,
+                                      ),
+                                      label: Text(
+                                        booking.status == 'Paused' ? 'Resume' : 'Pause',
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: booking.status == 'Paused'
+                                            ? Colors.green.shade800
+                                            : Colors.orange.shade800,
+                                        side: BorderSide(
+                                          color: booking.status == 'Paused'
+                                              ? Colors.green.shade800
+                                              : Colors.orange.shade800,
+                                          width: 1.2,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: SizedBox(
+                                    height: 38,
+                                    child: OutlinedButton.icon(
+                                      onPressed: () => _cancelSubscription(context, store, booking),
+                                      icon: const Icon(Icons.cancel_outlined, size: 16),
+                                      label: Text(
+                                        'Cancel',
+                                        style: GoogleFonts.montserrat(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: CustomersLoginThemeView.sectionHeadingRed,
+                                        side: const BorderSide(
+                                          color: CustomersLoginThemeView.sectionHeadingRed,
+                                          width: 1.2,
+                                        ),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            // Pay Balance or Renew Buttons
+                            if (!booking.isFullyPaid && booking.balanceOnFullPaymentRupees > 0) ...[
+                              SizedBox(
+                                width: double.infinity,
+                                height: 38,
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _payBalanceAmount(context, store, booking),
+                                  icon: const Icon(Icons.payments_outlined, size: 18),
+                                  label: Text(
+                                    'Pay Balance (₹${booking.balanceOnFullPaymentRupees})',
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: CustomersLoginThemeView.sectionHeadingRed,
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
+                            ] else ...[
+                              SizedBox(
+                                width: double.infinity,
+                                height: 38,
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _renewSubscription(context, store, booking),
+                                  icon: const Icon(Icons.autorenew, size: 18),
+                                  label: Text(
+                                    'Renew for Next Month',
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: CustomersLoginThemeView.primaryBlue,
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ] else ...[
+                            // If Cancelled, show a re-purchase button
                             SizedBox(
                               width: double.infinity,
                               height: 38,
@@ -672,7 +934,7 @@ class YourSubscriptionsView extends StatelessWidget {
                                 onPressed: () => _renewSubscription(context, store, booking),
                                 icon: const Icon(Icons.autorenew, size: 18),
                                 label: Text(
-                                  'Renew for Next Month',
+                                  'Re-purchase Subscription',
                                   style: GoogleFonts.montserrat(
                                     fontSize: 13,
                                     fontWeight: FontWeight.bold,

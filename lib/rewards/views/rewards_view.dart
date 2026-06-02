@@ -8,6 +8,7 @@ import '../../theme/customers_login_themeview.dart';
 import '../../bottomnavigation/home_shell_scope.dart';
 import '../models/plant_option.dart';
 import '../viewmodels/rewards_viewmodel.dart';
+import '../../core/widgets/shimmer_loading.dart';
 
 class RewardsView extends StatefulWidget {
   final RewardsViewModel viewModel;
@@ -19,6 +20,20 @@ class RewardsView extends StatefulWidget {
 }
 
 class _RewardsViewState extends State<RewardsView> {
+  bool _isLocalLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      if (mounted) {
+        setState(() {
+          _isLocalLoading = false;
+        });
+      }
+    });
+  }
+
   void _showLockedBottomSheetPopup(
     BuildContext context,
     double Function(double) scaleF,
@@ -166,7 +181,9 @@ class _RewardsViewState extends State<RewardsView> {
               ),
             ),
           ),
-          body: ListView(
+          body: _isLocalLoading
+              ? _buildRewardsSkeleton(context, hPadding, scaleF, fs)
+              : ListView(
             physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
             padding: EdgeInsets.fromLTRB(hPadding, scaleF(8), hPadding, scaleF(32)),
             children: [
@@ -834,6 +851,135 @@ class _RewardsViewState extends State<RewardsView> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildRewardsSkeleton(
+    BuildContext context,
+    double hPadding,
+    double Function(double) scaleF,
+    double Function(double) fs,
+  ) {
+    return ListView(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.fromLTRB(hPadding, scaleF(8), hPadding, scaleF(32)),
+      children: [
+        // Top banner skeleton
+        Container(
+          padding: EdgeInsets.all(scaleF(14)),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.black12, width: 1),
+          ),
+          child: Column(
+            children: [
+              ShimmerSkeleton(width: scaleF(110), height: scaleF(110), borderRadius: 55),
+              SizedBox(height: scaleF(12)),
+              ShimmerSkeleton(width: scaleF(180), height: scaleF(18), borderRadius: 3),
+              SizedBox(height: scaleF(8)),
+              ShimmerSkeleton(width: double.infinity, height: scaleF(12), borderRadius: 3),
+              SizedBox(height: scaleF(4)),
+              ShimmerSkeleton(width: scaleF(240), height: scaleF(12), borderRadius: 3),
+            ],
+          ),
+        ),
+        SizedBox(height: scaleF(20)),
+
+        // Milestone header skeleton
+        ShimmerSkeleton(width: scaleF(170), height: scaleF(15), borderRadius: 3),
+        SizedBox(height: scaleF(12)),
+
+        // Milestone Timeline skeleton
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: scaleF(8), vertical: scaleF(14)),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.black12, width: 1),
+          ),
+          child: Column(
+            children: [
+              // Top date labels
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: List.generate(6, (index) => ShimmerSkeleton(width: scaleF(36), height: scaleF(9), borderRadius: 2)),
+              ),
+              SizedBox(height: scaleF(10)),
+              // Middle progress row
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: List.generate(6, (index) => ShimmerSkeleton(width: scaleF(30), height: scaleF(30), borderRadius: 15)),
+              ),
+              SizedBox(height: scaleF(10)),
+              // Bottom desc labels
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: List.generate(6, (index) => ShimmerSkeleton(width: scaleF(36), height: scaleF(9), borderRadius: 2)),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(height: scaleF(24)),
+
+        // Plant Grid Title skeleton
+        ShimmerSkeleton(width: scaleF(200), height: scaleF(15), borderRadius: 3),
+        SizedBox(height: scaleF(6)),
+        ShimmerSkeleton(width: scaleF(240), height: scaleF(11), borderRadius: 3),
+        SizedBox(height: scaleF(12)),
+
+        // Plant Grid skeleton (2x2 cards)
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: 4,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: scaleF(12),
+            mainAxisSpacing: scaleF(12),
+            childAspectRatio: 0.82,
+          ),
+          itemBuilder: (context, index) {
+            return Container(
+              padding: EdgeInsets.all(scaleF(12)),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.black12, width: 1),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ShimmerSkeleton(width: scaleF(32), height: scaleF(32), borderRadius: 8),
+                      ShimmerSkeleton(width: scaleF(14), height: scaleF(14), borderRadius: 7),
+                    ],
+                  ),
+                  SizedBox(height: scaleF(8)),
+                  ShimmerSkeleton(width: scaleF(80), height: scaleF(13), borderRadius: 3),
+                  SizedBox(height: scaleF(4)),
+                  ShimmerSkeleton(width: scaleF(60), height: scaleF(10), borderRadius: 3),
+                  SizedBox(height: scaleF(8)),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ShimmerSkeleton(width: double.infinity, height: scaleF(9), borderRadius: 2),
+                        SizedBox(height: scaleF(3)),
+                        ShimmerSkeleton(width: double.infinity, height: scaleF(9), borderRadius: 2),
+                        SizedBox(height: scaleF(3)),
+                        ShimmerSkeleton(width: scaleF(60), height: scaleF(9), borderRadius: 2),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }

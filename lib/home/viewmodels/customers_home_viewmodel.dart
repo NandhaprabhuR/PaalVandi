@@ -47,6 +47,7 @@ class HomeLoggedOut extends CustomersHomeState {
 
 // ViewModel (BLoC)
 class CustomersHomeViewModel extends Bloc<CustomersHomeEvent, CustomersHomeState> {
+  // ignore: unused_field
   final dynamic _supabase;
 
   CustomersHomeViewModel(this._supabase) : super(const HomeInitial(CustomersHomeModel())) {

@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../theme/customers_login_themeview.dart';
 import '../../core/widgets/responsive_helper.dart';
 import '../models/booked_subscription_model.dart';
+import '../../core/services/haptic_service.dart';
 import '../viewmodels/subscriptions_scope.dart';
 import '../models/subscription_quote_model.dart';
 import 'subscription_payment_selection_view.dart';
@@ -40,6 +41,7 @@ class _CancelSubscriptionViewState extends State<CancelSubscriptionView> {
   }
 
   void _startVoiceAutofill() {
+    HapticService.lightImpact();
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -106,6 +108,7 @@ class _CancelSubscriptionViewState extends State<CancelSubscriptionView> {
   }
 
   void _recordVoiceMessage() {
+    HapticService.lightImpact();
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -287,6 +290,7 @@ class _CancelSubscriptionViewState extends State<CancelSubscriptionView> {
                           selected: selected,
                           onSelected: (val) {
                             if (val) {
+                              HapticService.selection();
                               setState(() => _selectedReason = r);
                             }
                           },
@@ -479,6 +483,7 @@ class _CancelSubscriptionViewState extends State<CancelSubscriptionView> {
                             ],
                             onChanged: (val) {
                               if (val != null) {
+                                HapticService.selection();
                                 setState(() => _selectedTerm = val);
                               }
                             },
@@ -579,6 +584,7 @@ class _CancelSubscriptionViewState extends State<CancelSubscriptionView> {
                   onPressed: _selectedReason == null
                       ? null
                       : () {
+                          HapticService.warning();
                           final store = SubscriptionsScope.of(context);
                           
                           if (requiresPaymentAtMonthEnd) {

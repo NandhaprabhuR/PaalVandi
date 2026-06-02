@@ -5,6 +5,7 @@ import '../../../theme/customers_login_themeview.dart';
 import '../../../core/widgets/responsive_helper.dart';
 import '../../models/home_catalog_data.dart';
 import '../product_details_view.dart';
+import '../../../core/services/haptic_service.dart';
 
 class HomeProductCard extends StatelessWidget {
   static const double cardRadius = 24;
@@ -27,7 +28,7 @@ class HomeProductCard extends StatelessWidget {
     final cart = CartScope.of(context);
     final width = ResponsiveHelper.scaleWidth(context, 152).clamp(135.0, 180.0);
     // Increase card height slightly to provide plenty of vertical breathing room
-    final height = ResponsiveHelper.scaleHeight(context, 184).clamp(170.0, 230.0);
+    final height = ResponsiveHelper.scaleHeight(context, 195).clamp(180.0, 240.0);
     final fs = (double size) => ResponsiveHelper.scaledFontSize(context, size);
     final scaleF = (double val) => ResponsiveHelper.scaledValue(context, val);
 
@@ -135,85 +136,152 @@ class HomeProductCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                      SizedBox(height: scaleF(4)),
-                      Text(
-                        productName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.montserrat(
-                          fontSize: fs(11),
-                          fontWeight: FontWeight.w700,
-                          color: CustomersLoginThemeView.textDark,
-                          height: 1.0,
-                        ),
-                      ),
-                      if (showDepositBadge || showRefillBadge) ...[
-                        SizedBox(height: scaleF(3)),
-                        Column(
-                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            if (showDepositBadge)
-                              Text('♻ Glass Return', style: badgeStyle),
-                            if (showRefillBadge)
-                              Text('🥣 Refill', style: badgeStyle),
-                          ],
-                        ),
-                      ],
-                      const Spacer(),
-                      // Quantity and Price row (horizontal gap maintained, but shifted up above the button)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            item.quantity,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.montserrat(
-                              fontSize: fs(11),
-                              fontWeight: FontWeight.w700,
-                              color: CustomersLoginThemeView.quantityAccent,
-                              height: 1.0,
-                            ),
+                        SizedBox(height: scaleF(4)),
+                        Text(
+                          productName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.montserrat(
+                            fontSize: fs(11),
+                            fontWeight: FontWeight.w700,
+                            color: CustomersLoginThemeView.textDark,
+                            height: 1.0,
                           ),
-                          Text(
-                            item.price,
-                            style: GoogleFonts.montserrat(
-                              fontSize: fs(13),
-                              fontWeight: FontWeight.w800,
-                              color: CustomersLoginThemeView.priceAccent,
-                              height: 1.0,
-                            ),
+                        ),
+                        if (showDepositBadge || showRefillBadge) ...[
+                          SizedBox(height: scaleF(3)),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (showDepositBadge)
+                                Text('♻ Deposit Bottle Available', style: badgeStyle),
+                              if (showRefillBadge)
+                                Text('🥣 Refill Available', style: badgeStyle),
+                            ],
                           ),
                         ],
-                      ),
-                      // Height of 42 leaves exactly enough room for the positioned button/stepper
-                      SizedBox(height: scaleF(42)),
-                    ],
-                  ),
-                ),
-                Positioned(
-                  right: scaleF(8),
-                  bottom: scaleF(8),
-                  child: count == 0
-                      ? _addOnlyButton(
-                          context,
-                          scaleF,
-                          onTap: () => cart.addFromHome(productName, item),
-                        )
-                      : _quantityStepper(
-                          context,
-                          count: count,
-                          fs: fs,
-                          scaleF: scaleF,
-                          onAdd: () => cart.addFromHome(productName, item),
-                          onRemove: () =>
-                              cart.decrementFromHome(productName, item.quantity),
+                        const Spacer(),
+                        // Quantity and Price row (horizontal gap maintained, but shifted up above the button)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              item.quantity,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.montserrat(
+                                fontSize: fs(11),
+                                fontWeight: FontWeight.w700,
+                                color: CustomersLoginThemeView.quantityAccent,
+                                height: 1.0,
+                              ),
+                            ),
+                            Text(
+                              item.price,
+                              style: GoogleFonts.montserrat(
+                                fontSize: fs(13),
+                                fontWeight: FontWeight.w800,
+                                color: CustomersLoginThemeView.priceAccent,
+                                height: 1.0,
+                              ),
+                            ),
+                          ],
                         ),
-                ),
-              ],
+                        SizedBox(height: scaleF(4)),
+                        Row(
+                          children: [
+                            Text(
+                              '⭐ ${item.rating.toStringAsFixed(1)}',
+                              style: GoogleFonts.montserrat(
+                                fontSize: fs(9),
+                                fontWeight: FontWeight.bold,
+                                color: Colors.amber.shade800,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                item.totalOrders,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.montserrat(
+                                  fontSize: fs(8),
+                                  fontWeight: FontWeight.w600,
+                                  color: CustomersLoginThemeView.textGrey,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        // Height of 42 leaves exactly enough room for the positioned button/stepper
+                        SizedBox(height: scaleF(42)),
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    top: scaleF(8),
+                    right: scaleF(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: item.stockStatus == 'Out of Stock'
+                            ? const Color(0xFFD32F2F)
+                            : (item.stockStatus == 'Low Stock'
+                                ? const Color(0xFFF57C00)
+                                : const Color(0xFF388E3C)),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.white, width: 1),
+                      ),
+                      child: Text(
+                        item.stockStatus,
+                        style: GoogleFonts.montserrat(
+                          fontSize: fs(7),
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: scaleF(8),
+                    bottom: scaleF(8),
+                    child: item.stockStatus == 'Out of Stock'
+                        ? Container(
+                            padding: EdgeInsets.symmetric(horizontal: scaleF(10), vertical: scaleF(6)),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey.shade400, width: 1),
+                            ),
+                            child: Text(
+                              'Sold Out',
+                              style: GoogleFonts.montserrat(
+                                fontSize: fs(9),
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          )
+                        : count == 0
+                            ? _addOnlyButton(
+                                context,
+                                scaleF,
+                                onTap: () => cart.addFromHome(productName, item),
+                              )
+                            : _quantityStepper(
+                                context,
+                                count: count,
+                                fs: fs,
+                                scaleF: scaleF,
+                                onAdd: () => cart.addFromHome(productName, item),
+                                onRemove: () =>
+                                    cart.decrementFromHome(productName, item.quantity),
+                              ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
         );
       },
     );
@@ -225,7 +293,10 @@ class HomeProductCard extends StatelessWidget {
       shape: const CircleBorder(),
       child: InkWell(
         customBorder: const CircleBorder(),
-        onTap: onTap,
+        onTap: () {
+          HapticService.mediumImpact();
+          onTap();
+        },
         child: Padding(
           padding: EdgeInsets.all(scaleF(8).clamp(6.0, 10.0)),
           child: Icon(Icons.add, color: Colors.white, size: scaleF(20).clamp(16.0, 24.0)),
@@ -278,7 +349,10 @@ class HomeProductCard extends StatelessWidget {
 
   Widget _stepTap(BuildContext context, IconData icon, double Function(double) scaleF, VoidCallback onTap) {
     return InkWell(
-      onTap: onTap,
+      onTap: () {
+        HapticService.lightImpact();
+        onTap();
+      },
       borderRadius: BorderRadius.circular(18),
       child: Padding(
         padding: EdgeInsets.all(scaleF(6).clamp(4.0, 8.0)),

@@ -152,7 +152,7 @@ Future<void> showSubscriptionCallDialog(BuildContext context) {
                     onPressed: () async {
                       final uri = Uri.parse('tel:$kSubscriptionSupportPhone');
                       try {
-                        await launchUrl(uri);
+                        await launchUrl(uri, mode: LaunchMode.externalApplication);
                       } catch (_) {
                         // Safely ignore failure if dialer can't open on desktop emulator
                       }

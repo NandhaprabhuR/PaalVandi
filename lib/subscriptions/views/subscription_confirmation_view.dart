@@ -28,6 +28,15 @@ class SubscriptionConfirmationView extends StatelessWidget {
   }
 
   Future<void> _downloadPdf(BuildContext context) async {
+    String cleanText(String text) {
+      return text
+          .replaceAll('•', '-')
+          .replaceAll('–', '-')
+          .replaceAll('—', '-')
+          .replaceAll('→', '->')
+          .replaceAll('₹', 'Rs.');
+    }
+
     final pdf = pw.Document();
 
     pdf.addPage(
@@ -93,7 +102,7 @@ class SubscriptionConfirmationView extends StatelessWidget {
 
                 // Invoice Title / Plan Name
                 pw.Text(
-                  quote.planTitle,
+                  cleanText(quote.planTitle),
                   style: pw.TextStyle(
                     fontSize: 20,
                     fontWeight: pw.FontWeight.bold,
@@ -126,7 +135,7 @@ class SubscriptionConfirmationView extends StatelessWidget {
                       return pw.Padding(
                         padding: const pw.EdgeInsets.only(bottom: 4),
                         child: pw.Text(
-                          '• $line',
+                          cleanText('- $line'),
                           style: const pw.TextStyle(fontSize: 11, color: PdfColors.grey900),
                         ),
                       );
@@ -158,7 +167,7 @@ class SubscriptionConfirmationView extends StatelessWidget {
                           pw.Padding(
                             padding: const pw.EdgeInsets.all(8),
                             child: pw.Text(
-                              line.label,
+                              cleanText(line.label),
                               style: pw.TextStyle(
                                 fontSize: 11,
                                 fontWeight: line.label.contains('total') || line.label.contains('Total')

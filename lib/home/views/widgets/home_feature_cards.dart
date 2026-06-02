@@ -121,17 +121,7 @@ class HomeFeatureCards extends StatefulWidget {
   @override
   State<HomeFeatureCards> createState() => _HomeFeatureCardsState();
 }
-
 class _HomeFeatureCardsState extends State<HomeFeatureCards> {
-  static const List<Color> _softTints = [
-    Color(0xFFE8F5E9), // Emerald green tint
-    Color(0xFFF5FAFE), // Soft blue tint
-    Color(0xFFF2FBF6), // Soft mint tint
-    Color(0xFFFFFAF2), // Soft orange/yellow tint
-    Color(0xFFF8F5FC), // Soft purple tint
-    Color(0xFFFFF6F2), // Soft peach tint
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -142,8 +132,7 @@ class _HomeFeatureCardsState extends State<HomeFeatureCards> {
     super.dispose();
   }
 
-  /// Dummy method to prevent runtime Lookup failed exceptions when an active,
-  /// legacy hot-reload timer tries to invoke the old carousel auto-scroll method.
+  // ignore: unused_element
   void _nextPageForward() {}
 
   @override
@@ -159,7 +148,6 @@ class _HomeFeatureCardsState extends State<HomeFeatureCards> {
     // Build the list of promotional rounds
     final promoRounds = List.generate(HomeCatalogData.promoCards.length, (index) {
       final card = HomeCatalogData.promoCards[index];
-      final bgColor = _softTints[index % _softTints.length];
 
       // Determine clean short title, subtitles, sizes, and fits
       String shortTitle = card.title;
@@ -342,23 +330,19 @@ class _HomeFeatureCardsState extends State<HomeFeatureCards> {
                     color: cardBg,
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: iconBg.withValues(alpha: 0.3),
-                      width: 1.5,
+                      color: Colors.black,
+                      width: 1.0,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: iconBg.withValues(alpha: 0.08),
+                        color: Colors.black.withValues(alpha: 0.04),
                         blurRadius: 6,
                         offset: const Offset(0, 3),
                       ),
                     ],
                   ),
                   alignment: Alignment.center,
-                  child: const MicroAnimatedEmoji(
-                    emoji: '📅',
-                    animationType: 'pulse',
-                    fontSize: 32,
-                  ),
+                  child: _AppleCalendarIcon(size: scaleF(36)),
                 ),
                 SizedBox(height: scaleF(8)),
                 Text(
@@ -396,7 +380,7 @@ class _HomeFeatureCardsState extends State<HomeFeatureCards> {
       children: [
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: EdgeInsets.symmetric(horizontal: scaleF(12)),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -563,3 +547,81 @@ class _HomeFeatureCardsOldState extends State<HomeFeatureCardsOld> {
   }
 }
 */
+
+class _AppleCalendarIcon extends StatelessWidget {
+  final double size;
+  const _AppleCalendarIcon({required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final monthStr = _getMonthName(now.month);
+    final dayStr = now.day.toString();
+
+    return Container(
+      width: size,
+      height: size * 1.05,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.15), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 3,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        children: [
+          // Red top bar representing Apple calendar
+          Container(
+            width: double.infinity,
+            color: const Color(0xFFEF5350), // Apple Red
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Text(
+              monthStr,
+              style: GoogleFonts.montserrat(
+                color: Colors.white,
+                fontSize: size * 0.20,
+                fontWeight: FontWeight.w800,
+                height: 1.1,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          // White body showing current day
+          Expanded(
+            child: Container(
+              color: Colors.white,
+              alignment: Alignment.center,
+              child: Text(
+                dayStr,
+                style: GoogleFonts.montserrat(
+                  color: Colors.black,
+                  fontSize: size * 0.38,
+                  fontWeight: FontWeight.w800,
+                  height: 1.0,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _getMonthName(int month) {
+    const months = [
+      'Jan', 'Feb', 'March', 'April', 'May', 'June',
+      'July', 'Aug', 'Sept', 'Oct', 'Nov', 'Dec'
+    ];
+    if (month >= 1 && month <= 12) {
+      return months[month - 1];
+    }
+    return '';
+  }
+}

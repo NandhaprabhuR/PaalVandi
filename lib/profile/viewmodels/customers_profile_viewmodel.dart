@@ -2,12 +2,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 // import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/customers_profile_model.dart';
+import '../../core/services/haptic_service.dart';
 
 // Events
 abstract class CustomersProfileEvent extends Equatable {
   const CustomersProfileEvent();
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class ProfileFieldChanged extends CustomersProfileEvent {
@@ -18,6 +19,16 @@ class ProfileFieldChanged extends CustomersProfileEvent {
   final String? pincode;
   final String? referralCode;
   final String? deliveryPreference;
+  final String? profilePhoto;
+  final String? preferredDeliveryTime;
+  final bool? enablePushNotification;
+  final bool? enableWhatsAppNotification;
+  final bool? enableSmsNotification;
+  final String? emergencyContact;
+  final bool? enableHapticFeedback;
+  final bool? enableOrderUpdates;
+  final bool? enableSubscriptionReminders;
+  final bool? enablePromotionalOffers;
 
   const ProfileFieldChanged({
     this.name,
@@ -27,17 +38,37 @@ class ProfileFieldChanged extends CustomersProfileEvent {
     this.pincode,
     this.referralCode,
     this.deliveryPreference,
+    this.profilePhoto,
+    this.preferredDeliveryTime,
+    this.enablePushNotification,
+    this.enableWhatsAppNotification,
+    this.enableSmsNotification,
+    this.emergencyContact,
+    this.enableHapticFeedback,
+    this.enableOrderUpdates,
+    this.enableSubscriptionReminders,
+    this.enablePromotionalOffers,
   });
 
   @override
-  List<Object> get props => [
-        name ?? '',
-        houseNo ?? '',
-        apartmentName ?? '',
-        street ?? '',
-        pincode ?? '',
-        referralCode ?? '',
-        deliveryPreference ?? '',
+  List<Object?> get props => [
+        name,
+        houseNo,
+        apartmentName,
+        street,
+        pincode,
+        referralCode,
+        deliveryPreference,
+        profilePhoto,
+        preferredDeliveryTime,
+        enablePushNotification,
+        enableWhatsAppNotification,
+        enableSmsNotification,
+        emergencyContact,
+        enableHapticFeedback,
+        enableOrderUpdates,
+        enableSubscriptionReminders,
+        enablePromotionalOffers,
       ];
 }
 
@@ -80,11 +111,19 @@ class ProfileFailure extends CustomersProfileState {
 
 // ViewModel (BLoC)
 class CustomersProfileViewModel extends Bloc<CustomersProfileEvent, CustomersProfileState> {
+  // ignore: unused_field
   final dynamic _supabase;
 
-  CustomersProfileViewModel(this._supabase) : super(const ProfileInitial(CustomersProfileModel())) {
+  CustomersProfileViewModel(this._supabase)
+      : super(ProfileInitial(CustomersProfileModel(
+          enableHapticFeedback: HapticService.hapticsEnabled,
+          enablePushNotification: HapticService.pushEnabled,
+          enableOrderUpdates: HapticService.orderEnabled,
+          enableSubscriptionReminders: HapticService.remindersEnabled,
+          enablePromotionalOffers: HapticService.promoEnabled,
+        ))) {
     on<ProfileFieldChanged>((event, emit) {
-      emit(ProfileInitial(state.model.copyWith(
+      final updatedModel = state.model.copyWith(
         name: event.name,
         houseNo: event.houseNo,
         apartmentName: event.apartmentName,
@@ -92,7 +131,40 @@ class CustomersProfileViewModel extends Bloc<CustomersProfileEvent, CustomersPro
         pincode: event.pincode,
         referralCode: event.referralCode,
         deliveryPreference: event.deliveryPreference,
-      )));
+        profilePhoto: event.profilePhoto,
+        preferredDeliveryTime: event.preferredDeliveryTime,
+        enablePushNotification: event.enablePushNotification,
+        enableWhatsAppNotification: event.enableWhatsAppNotification,
+        enableSmsNotification: event.enableSmsNotification,
+        emergencyContact: event.emergencyContact,
+        enableHapticFeedback: event.enableHapticFeedback,
+        enableOrderUpdates: event.enableOrderUpdates,
+        enableSubscriptionReminders: event.enableSubscriptionReminders,
+        enablePromotionalOffers: event.enablePromotionalOffers,
+      );
+
+      // Perform local SharedPreferences side effects and update global service flags
+      if (event.enableHapticFeedback != null) {
+        HapticService.setEnabled(event.enableHapticFeedback!);
+      }
+      if (event.enablePushNotification != null) {
+        HapticService.savePreference(HapticService.pushKey, event.enablePushNotification!);
+        HapticService.pushEnabled = event.enablePushNotification!;
+      }
+      if (event.enableOrderUpdates != null) {
+        HapticService.savePreference(HapticService.orderKey, event.enableOrderUpdates!);
+        HapticService.orderEnabled = event.enableOrderUpdates!;
+      }
+      if (event.enableSubscriptionReminders != null) {
+        HapticService.savePreference(HapticService.remindersKey, event.enableSubscriptionReminders!);
+        HapticService.remindersEnabled = event.enableSubscriptionReminders!;
+      }
+      if (event.enablePromotionalOffers != null) {
+        HapticService.savePreference(HapticService.promoKey, event.enablePromotionalOffers!);
+        HapticService.promoEnabled = event.enablePromotionalOffers!;
+      }
+
+      emit(ProfileInitial(updatedModel));
     });
 
     on<ProfileFetchLocationRequested>((event, emit) async {

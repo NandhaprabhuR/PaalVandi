@@ -15,6 +15,7 @@ import '../home_shell_scope.dart';
 import '../widgets/added_to_cart_bar.dart';
 import '../../rewards/viewmodels/rewards_viewmodel.dart';
 import '../../rewards/views/rewards_view.dart';
+import '../../core/services/haptic_service.dart';
 
 
 class BottomNavigationView extends StatefulWidget {
@@ -55,6 +56,9 @@ class _BottomNavigationViewState extends State<BottomNavigationView> {
   }
 
   void _onTap(int idx) {
+    if (idx != _currentIndex) {
+      HapticService.lightImpact();
+    }
     setState(() => _currentIndex = idx);
     AppRouteStorage.saveHomeTabIndex(idx);
     if (idx == 1) {

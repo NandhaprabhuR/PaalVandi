@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../../theme/customers_login_themeview.dart';
 import '../../../core/widgets/responsive_helper.dart';
 import 'home_gpay_loading_line.dart';
+import '../notifications_view.dart';
 
 class HomeTopBar extends StatelessWidget {
   final ValueChanged<String>? onSearchChanged;
@@ -46,86 +47,101 @@ class HomeTopBar extends StatelessWidget {
           children: [
             Container(
               height: barHeight,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: CustomersLoginThemeView.cardBackgroundColor,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(28),
-                bottomRight: Radius.circular(28),
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: CustomersLoginThemeView.cardBackgroundColor,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(28),
+                  bottomRight: Radius.circular(28),
+                ),
+                border: Border(
+                  bottom: BorderSide(
+                    color: CustomersLoginThemeView.primaryBlue,
+                    width: 3,
+                  ),
+                ),
               ),
-              border: Border(
-                bottom: BorderSide(
-                  color: CustomersLoginThemeView.primaryBlue,
-                  width: 3,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(28),
+                  bottomRight: Radius.circular(28),
+                ),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.asset(
+                      'assets/topbar/hometopbar.png',
+                      fit: BoxFit.cover,
+                    ),
+                    SafeArea(
+                      bottom: false,
+                      child: Padding(
+                        padding: EdgeInsets.fromLTRB(16, 0, 16, barHeight * 0.3),
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            const Center(
+                              child: SizedBox(),
+                            ),
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              bottom: 0,
+                              child: Center(
+                                child: Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.9),
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.08),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: IconButton(
+                                        icon: const Icon(
+                                          Icons.notifications_none_rounded,
+                                          color: CustomersLoginThemeView.primaryBlue,
+                                          size: 24,
+                                        ),
+                                        onPressed: () {
+                                          Navigator.of(context).push(
+                                            MaterialPageRoute(
+                                              builder: (_) => const NotificationsView(),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    Positioned(
+                                      right: 2,
+                                      top: 2,
+                                      child: Container(
+                                        width: 8,
+                                        height: 8,
+                                        decoration: const BoxDecoration(
+                                          color: Colors.redAccent,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            child: ClipRRect(
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(28),
-                bottomRight: Radius.circular(28),
-              ),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.asset(
-                    'assets/topbar/hometopbar.png',
-                    fit: BoxFit.cover,
-                  ),
-                  SafeArea(
-                    bottom: false,
-                    child: Padding(
-                      padding: EdgeInsets.fromLTRB(16, 0, 16, barHeight * 0.3),
-                      child: const Center(
-                        child: SizedBox(), // Brand name capsule commented out below (uncomment if needed later)
-                        /*
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.85),
-                              borderRadius: BorderRadius.circular(18),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.05),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'PaalVandi',
-                                  style: CustomersLoginThemeView.brandTitleStyle.copyWith(
-                                    fontSize: fs(22),
-                                    height: 1.0,
-                                    color: CustomersLoginThemeView.primaryBlue,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'FRESH MILK, EVERY DAY',
-                                  style: CustomersLoginThemeView.brandTaglineStyle.copyWith(
-                                    fontSize: fs(10),
-                                    height: 1.0,
-                                    color: CustomersLoginThemeView.primaryBlue,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        */
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
           Positioned(
             left: horizontalInset,
             right: horizontalInset,

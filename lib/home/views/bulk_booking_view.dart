@@ -6,6 +6,7 @@ import '../../../theme/customers_login_themeview.dart';
 import '../../../core/widgets/responsive_helper.dart';
 import '../../subscriptions/widgets/subscription_call_dialog.dart';
 import '../../../core/app_id_generator.dart';
+import '../../../core/widgets/shimmer_loading.dart';
 
 /// Form screen for bulk bookings with white background and app theme.
 class BulkBookingView extends StatefulWidget {
@@ -25,6 +26,20 @@ class BulkBookingView extends StatefulWidget {
 }
 
 class _BulkBookingViewState extends State<BulkBookingView> {
+  bool _isLocalLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      if (mounted) {
+        setState(() {
+          _isLocalLoading = false;
+        });
+      }
+    });
+  }
+
   // Multi-product selection maps
   final Map<String, bool> _selectedProducts = {
     'Fresh Cow Milk': true,
@@ -252,10 +267,12 @@ class _BulkBookingViewState extends State<BulkBookingView> {
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          GestureDetector(
-            onTap: () => FocusScope.of(context).unfocus(),
+      body: _isLocalLoading
+          ? _buildBulkBookingSkeleton(context, hPadding, scaleF, fs)
+          : Stack(
+              children: [
+                GestureDetector(
+                  onTap: () => FocusScope.of(context).unfocus(),
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               padding: EdgeInsets.fromLTRB(hPadding, scaleF(8), hPadding, scaleF(100)),
@@ -713,6 +730,129 @@ class _BulkBookingViewState extends State<BulkBookingView> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildBulkBookingSkeleton(
+    BuildContext context,
+    double hPadding,
+    double Function(double) scaleF,
+    double Function(double) fs,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: ListView(
+            physics: const NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.fromLTRB(hPadding, scaleF(8), hPadding, scaleF(100)),
+            children: [
+              // Choose Product Title
+              const ShimmerSkeleton(width: 250, height: 14, borderRadius: 3),
+              SizedBox(height: scaleF(12)),
+
+              // 3 Product card skeletons
+              ...List.generate(3, (index) {
+                return Container(
+                  margin: EdgeInsets.only(bottom: scaleF(12)),
+                  padding: EdgeInsets.all(scaleF(12)),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.black12, width: 1.0),
+                  ),
+                  child: Row(
+                    children: [
+                      ShimmerSkeleton(width: scaleF(46), height: scaleF(46), borderRadius: 10),
+                      SizedBox(width: scaleF(12)),
+                      Expanded(
+                        child: ShimmerSkeleton(width: scaleF(120), height: scaleF(14), borderRadius: 3),
+                      ),
+                      ShimmerSkeleton(width: scaleF(24), height: scaleF(24), borderRadius: 4),
+                    ],
+                  ),
+                );
+              }),
+              SizedBox(height: scaleF(12)),
+
+              // Address Header
+              const ShimmerSkeleton(width: 180, height: 14, borderRadius: 3),
+              SizedBox(height: scaleF(10)),
+
+              // Address card box skeleton
+              Container(
+                padding: EdgeInsets.all(scaleF(14)),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.black12, width: 1.0),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ShimmerSkeleton(width: double.infinity, height: scaleF(12), borderRadius: 2),
+                    SizedBox(height: scaleF(6)),
+                    ShimmerSkeleton(width: scaleF(200), height: scaleF(12), borderRadius: 2),
+                  ],
+                ),
+              ),
+              SizedBox(height: scaleF(20)),
+
+              // Date section header
+              const ShimmerSkeleton(width: 160, height: 14, borderRadius: 3),
+              SizedBox(height: scaleF(10)),
+
+              // Date card skeleton
+              Container(
+                padding: EdgeInsets.all(scaleF(14)),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.black12, width: 1.0),
+                ),
+                child: Row(
+                  children: [
+                    ShimmerSkeleton(width: scaleF(24), height: scaleF(24), borderRadius: 12),
+                    SizedBox(width: scaleF(12)),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ShimmerSkeleton(width: scaleF(120), height: scaleF(12), borderRadius: 3),
+                        SizedBox(height: scaleF(4)),
+                        ShimmerSkeleton(width: scaleF(80), height: scaleF(10), borderRadius: 3),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: scaleF(20)),
+
+              // Time slots header
+              const ShimmerSkeleton(width: 140, height: 14, borderRadius: 3),
+              SizedBox(height: scaleF(10)),
+
+              // Time slot chips skeletons
+              Wrap(
+                spacing: scaleF(8),
+                runSpacing: scaleF(8),
+                children: List.generate(4, (index) {
+                  return ShimmerSkeleton(width: scaleF(130), height: scaleF(32), borderRadius: 16);
+                }),
+              ),
+            ],
+          ),
+        ),
+
+        // Sticky bottom checkout button bar skeleton
+        Container(
+          padding: EdgeInsets.fromLTRB(hPadding, scaleF(10), hPadding, scaleF(14) + MediaQuery.paddingOf(context).bottom),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            border: Border(top: BorderSide(color: Colors.black.withOpacity(0.08), width: 1)),
+          ),
+          child: ShimmerSkeleton(width: double.infinity, height: scaleF(44), borderRadius: 10),
+        ),
+      ],
     );
   }
 }

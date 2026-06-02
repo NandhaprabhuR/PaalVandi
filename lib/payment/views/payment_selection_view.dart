@@ -8,6 +8,7 @@ import '../models/payment_model.dart';
 import '../viewmodels/payment_viewmodel.dart';
 import 'order_tracking_view.dart';
 import 'payment_success_view.dart';
+import '../../core/services/haptic_service.dart';
 import '../../profile/viewmodels/customers_profile_viewmodel.dart';
 import '../../profile/views/add_address_view.dart';
 
@@ -383,15 +384,20 @@ class _PaymentSelectionBody extends StatelessWidget {
                         Icons.payments_outlined,
                       ],
                       selected: model.selectedMethod == PaalvandiPaymentMethod.payNowUpi,
-                      onTap: () => context.read<PaymentViewModel>().add(
-                            const SelectPaymentMethod(PaalvandiPaymentMethod.payNowUpi),
-                          ),
+                      onTap: () {
+                        HapticService.lightImpact();
+                        context.read<PaymentViewModel>().add(
+                              const SelectPaymentMethod(PaalvandiPaymentMethod.payNowUpi),
+                            );
+                      },
                       fs: fs,
                       scaleF: scaleF,
                       expandedChild: _UpiAppsSection(
                         selected: model.selectedUpiApp,
-                        onSelect: (app) =>
-                            context.read<PaymentViewModel>().add(SelectUpiApp(app)),
+                        onSelect: (app) {
+                          HapticService.lightImpact();
+                          context.read<PaymentViewModel>().add(SelectUpiApp(app));
+                        },
                         fs: fs,
                         scaleF: scaleF,
                       ),
@@ -405,11 +411,14 @@ class _PaymentSelectionBody extends StatelessWidget {
                       footer: 'Pay using any UPI app at doorstep',
                       trailingIcons: const [Icons.qr_code_2_outlined],
                       selected: model.selectedMethod == PaalvandiPaymentMethod.payAtDelivery,
-                      onTap: () => context.read<PaymentViewModel>().add(
-                            const SelectPaymentMethod(
-                              PaalvandiPaymentMethod.payAtDelivery,
-                            ),
-                          ),
+                      onTap: () {
+                        HapticService.lightImpact();
+                        context.read<PaymentViewModel>().add(
+                              const SelectPaymentMethod(
+                                PaalvandiPaymentMethod.payAtDelivery,
+                              ),
+                            );
+                      },
                       fs: fs,
                       scaleF: scaleF,
                       expandedChild: _PayAtDeliverySection(fs: fs, scaleF: scaleF),
@@ -457,9 +466,12 @@ class _PaymentSelectionBody extends StatelessWidget {
                           child: ElevatedButton(
                             onPressed: processing
                                 ? null
-                                : () => context
-                                    .read<PaymentViewModel>()
-                                    .add(const ProcessPayment()),
+                                : () {
+                                    HapticService.mediumImpact();
+                                    context
+                                        .read<PaymentViewModel>()
+                                        .add(const ProcessPayment());
+                                  },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: CustomersLoginThemeView.primaryBlue,
                               foregroundColor: Colors.white,

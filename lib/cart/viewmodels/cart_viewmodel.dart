@@ -9,18 +9,59 @@ import '../models/order_display_models.dart';
 import '../models/order_history_model.dart';
 import '../models/product_review.dart';
 import '../../core/app_id_generator.dart';
+import '../../payment/models/payment_history_entry.dart';
 
 class CartViewModel extends ChangeNotifier {
   static const int deliveryChargeRupees = 15;
 
   final List<CartLineItem> items = [];
   final List<OrderHistoryEntry> completedOrders = [];
-  final BottleWalletStats walletStats = const BottleWalletStats();
+  BottleWalletStats walletStats = const BottleWalletStats();
   bool showAddedToCartBar = false;
   TrackedOrder? activeTrackedOrder;
   final Map<String, TrackedOrder> trackedOrders = {};
   final List<BottleHistoryEntry> placedBottleHistory = [];
   final Set<String> bottleReturnRequestedOrderIds = {};
+  final List<PaymentHistoryEntry> paymentHistory = [];
+
+  void simulateDoorstepPickup() {
+    if (walletStats.pendingBottles > 0) {
+      final currentPending = walletStats.pendingBottles;
+      walletStats = walletStats.copyWith(
+        returnedBottles: walletStats.returnedBottles + currentPending,
+      );
+      notifyListeners();
+    }
+  }
+
+  CartViewModel() {
+    paymentHistory.addAll([
+      PaymentHistoryEntry(
+        transactionId: 'TXNPV829D123',
+        referenceNumber: 'REF9K3M8L',
+        date: DateTime.now().subtract(const Duration(days: 3)),
+        amount: 350,
+        method: 'UPI (Google Pay)',
+        status: 'Success',
+      ),
+      PaymentHistoryEntry(
+        transactionId: 'TXNPV418A987',
+        referenceNumber: 'REF5P1W2Q',
+        date: DateTime.now().subtract(const Duration(days: 10)),
+        amount: 85,
+        method: 'Pay at Delivery (UPI QR)',
+        status: 'Success',
+      ),
+      PaymentHistoryEntry(
+        transactionId: 'TXNPV092X554',
+        referenceNumber: 'REF8T7Y1U',
+        date: DateTime.now().subtract(const Duration(days: 15)),
+        amount: 120,
+        method: 'UPI (PhonePe)',
+        status: 'Success',
+      ),
+    ]);
+  }
 
   final List<ProductReview> productReviews = [
     ProductReview(
@@ -250,6 +291,23 @@ class CartViewModel extends ChangeNotifier {
     );
     trackedOrders[id] = tracked;
     activeTrackedOrder = tracked;
+
+    // Record this payment in the transaction history
+    final refNo = 'REF${AppIdGenerator.generate5CharId().toUpperCase()}';
+    final txId = 'TXN${AppIdGenerator.generate5CharId().toUpperCase()}123';
+    paymentHistory.insert(
+      0,
+      PaymentHistoryEntry(
+        transactionId: txId,
+        referenceNumber: refNo,
+        date: placedAt,
+        amount: orderTotal,
+        method: paymentMethod == PaalvandiPaymentMethod.payNowUpi
+            ? 'UPI (${upiApp?.label ?? 'UPI'})'
+            : 'Pay at Delivery (UPI QR)',
+        status: 'Success',
+      ),
+    );
 
     for (final item in snapshot) {
       if (!item.hasDeposit) continue;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../theme/customers_login_themeview.dart';
 import '../../core/widgets/responsive_helper.dart';
+import '../../core/services/haptic_service.dart';
 
 Future<void> showSubscriptionBottomSheet({
   required BuildContext context,
@@ -102,7 +103,10 @@ class _SubscriptionSheetShell extends StatelessWidget {
                 width: double.infinity,
                 height: scaleF(48).clamp(42.0, 54.0),
                 child: ElevatedButton(
-                  onPressed: onContinue,
+                  onPressed: () {
+                    HapticService.mediumImpact();
+                    onContinue();
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: CustomersLoginThemeView.primaryBlue,
                     foregroundColor: Colors.white,
@@ -155,12 +159,14 @@ class SubscriptionRadioTile extends StatelessWidget {
   final String label;
   final bool selected;
   final VoidCallback onTap;
+  final String? badgeLabel;
 
   const SubscriptionRadioTile({
     super.key,
     required this.label,
     required this.selected,
     required this.onTap,
+    this.badgeLabel,
   });
 
   @override
@@ -176,7 +182,10 @@ class SubscriptionRadioTile extends StatelessWidget {
             : Colors.white,
         borderRadius: BorderRadius.circular(10),
         child: InkWell(
-          onTap: onTap,
+          onTap: () {
+            HapticService.lightImpact();
+            onTap();
+          },
           borderRadius: BorderRadius.circular(10),
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: scaleF(12), vertical: scaleF(10)),
@@ -210,6 +219,24 @@ class SubscriptionRadioTile extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (badgeLabel != null) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: CustomersLoginThemeView.primaryBlue,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      badgeLabel!,
+                      style: GoogleFonts.montserrat(
+                        fontSize: fs(9),
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -244,7 +271,10 @@ class SubscriptionCheckTile extends StatelessWidget {
             : Colors.white,
         borderRadius: BorderRadius.circular(10),
         child: InkWell(
-          onTap: () => onChanged(!value),
+          onTap: () {
+            HapticService.lightImpact();
+            onChanged(!value);
+          },
           borderRadius: BorderRadius.circular(10),
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: scaleF(12), vertical: scaleF(10)),

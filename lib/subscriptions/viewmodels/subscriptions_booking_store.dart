@@ -16,15 +16,7 @@ class SubscriptionsBookingStore extends ChangeNotifier {
   void markBookingAsPaid(BookedSubscription booking) {
     final index = _bookings.indexOf(booking);
     if (index != -1) {
-      _bookings[index] = BookedSubscription(
-        planTitle: booking.planTitle,
-        bookedAt: booking.bookedAt,
-        configSummary: booking.configSummary,
-        rateLines: booking.rateLines,
-        monthlyMilkRupees: booking.monthlyMilkRupees,
-        deliveryChargeRupees: booking.deliveryChargeRupees,
-        monthlyBillRupees: booking.monthlyBillRupees,
-        advanceRupees: booking.advanceRupees,
+      _bookings[index] = booking.copyWith(
         balanceOnFullPaymentRupees: 0,
         isFullyPaid: true,
       );
@@ -32,9 +24,38 @@ class SubscriptionsBookingStore extends ChangeNotifier {
     }
   }
 
+  void pauseBooking(BookedSubscription booking, DateTime start, DateTime end) {
+    final index = _bookings.indexOf(booking);
+    if (index != -1) {
+      _bookings[index] = booking.copyWith(
+        status: 'Paused',
+        pauseStartDate: start,
+        pauseEndDate: end,
+      );
+      notifyListeners();
+    }
+  }
+
+  void resumeBooking(BookedSubscription booking) {
+    final index = _bookings.indexOf(booking);
+    if (index != -1) {
+      _bookings[index] = booking.copyWith(
+        status: 'Active',
+        pauseStartDate: null,
+        pauseEndDate: null,
+      );
+      notifyListeners();
+    }
+  }
+
   void cancelBooking(BookedSubscription booking) {
-    _bookings.remove(booking);
-    notifyListeners();
+    final index = _bookings.indexOf(booking);
+    if (index != -1) {
+      _bookings[index] = booking.copyWith(
+        status: 'Cancelled',
+      );
+      notifyListeners();
+    }
   }
 
   void updateBooking(BookedSubscription oldB, BookedSubscription newB) {
