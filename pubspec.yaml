@@ -1,5 +1,5 @@
 name: paalvandi
-description: "Delivery partner app for PaalVandi."
+description: "PaalVandi Delivery Partner App — Operations & Delivery Management."
 publish_to: 'none'
 
 version: 1.0.0+1
@@ -17,6 +17,9 @@ dependencies:
   equatable: ^2.0.8
   google_fonts: ^8.1.0
   lottie: ^3.3.3
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:
